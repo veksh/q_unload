@@ -27,4 +27,9 @@
 - use
 
       ./q2csv userid=alex/$ap sqlstmt="`cat ./query.sql`" > out.csv
+      ./q2csv userid=alex/$ap sqlstmt="$(cat kda-q.sql)" enclosure='"' replace_nl='@' share=y
        
+
+# todo
+- bind vars
+- delimit only strings with '"' (and surely not nulls)
