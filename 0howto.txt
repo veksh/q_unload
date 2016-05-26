@@ -1,0 +1,15 @@
+- get code for flat.c from tom kite
+    - <https://asktom.oracle.com/pls/asktom/f?p=100:11:0::::P11_QUESTION_ID:459020243348>
+- gen c from pro*c
+  
+      export LD_LIBRARY_PATH=$ORACLE_HOME/lib/
+      proc iname=unload.pc
+
+- append `#include <stdlib.h>` to unload.c
+- complie 
+
+      gcc unload.c -L $ORACLE_HOME/lib -l clntsh -o unload
+
+- use
+
+      
