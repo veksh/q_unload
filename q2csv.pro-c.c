@@ -35,7 +35,6 @@ static void die( char * msg )
     exit(1);
 }
 
-
 /*
     this array contains a default mapping I am using to constrain the
     lengths of returned columns.  It is mapping, for example, the Oracle
@@ -213,8 +212,6 @@ int    i,j;
     fprintf( stderr, "%d rows extracted\n", row_count );
 }
 
-
-
 main( argc, argv )
 int    argc;
 char * argv[];
@@ -232,7 +229,7 @@ char * argv[];
     EXEC SQL WHENEVER SQLERROR DO sqlerror_hard();
 
     EXEC SQL CONNECT :oracleid;
-    fprintf(stderr, "\nConnected to ORACLE as user: %s\n\n", oracleid.arr);
+    fprintf(stderr, "Connected to ORACLE\n");
 
     EXEC SQL ALTER SESSION SET NLS_DATE_FORMAT = 'DD.MM.YYYY HH24:MI:SS';
 
