@@ -178,7 +178,8 @@ int     size = 10;
 }
 
 
-static void process_2( SQLDA * select_dp, int array_size, char * delimiter, char * enclosure, char * null_string )
+static void process_2( SQLDA * select_dp, int array_size, char * delimiter, char * enclosure, char * null_string,
+  char * replace_nl )
 {
 int    last_fetch_count;
 int    row_count = 0;
@@ -199,11 +200,10 @@ int    i,j;
                 ind_value = *(select_dp->I[i]+j);
                 char_ptr  = select_dp->V[i] + (j*select_dp->L[i]);
 
-                /* replace newlines */
-                if (REPLACE_NL) {
+                if (replace_nl) {
                   char *pch = strstr(char_ptr, "\n");
                   while(pch != NULL) {
-                    strncpy(pch, REPLACE_NL, 1);
+                    strncpy(pch, replace_nl, 1);
                     pch = strstr(char_ptr, "\n");
                   }
                 }
@@ -249,7 +249,7 @@ char * argv[];
     EXEC SQL ALTER SESSION SET NLS_DATE_FORMAT = 'DD.MM.YYYY HH24:MI:SS';
 
     select_dp = process_1( SQLSTMT, atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE );
-    process_2( select_dp , atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE, NULL_STRING );
+    process_2( select_dp , atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE, NULL_STRING, REPLACE_NL );
 
     /* Disconnect from ORACLE. */
     EXEC SQL COMMIT WORK RELEASE;
