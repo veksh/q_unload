@@ -4,23 +4,23 @@
 #include <stdlib.h>
 
 /* 
-  based on tom kite flat.c
+  based on tom kyte flat.c
   like https://asktom.oracle.com/pls/asktom/f?p=100:11:0::::P11_QUESTION_ID:459020243348
   and once http://asktom.oracle.com/~tkyte/flat/index.html (404 now)
   modifications from http://phil-sqltips.blogspot.ru/2010/06/tom-kytes-proc-arrayflat-csv-file.html
 */
 
-#define MAX_VNAME_LEN     30
-#define MAX_INAME_LEN     30
+#define MAX_VNAME_LEN 30
+#define MAX_INAME_LEN 30
 
-static char *   USERID = NULL;
-static char *   SQLSTMT = NULL;
-static char *   ARRAY_SIZE = "10";
-static char *   DELIMITER = "|";
-static char *   ENCLOSURE = "";
-static char *   NULL_STRING = "?";
-static char *   REPLACE_NL = NULL;
-static char *   FORCE_SHARING = NULL;
+static char * USERID = NULL;
+static char * SQLSTMT = NULL;
+static char * ARRAY_SIZE = "10";
+static char * DELIMITER = "|";
+static char * ENCLOSURE = "";
+static char * NULL_STRING = "?";
+static char * REPLACE_NL = NULL;
+static char * FORCE_SHARING = NULL;
 
 #define vstrcpy( a, b ) \
 (strcpy( a.arr, b ), a.len = strlen( a.arr ), a.arr)
@@ -119,8 +119,6 @@ static void sqlerror_hard()
     exit(1);
 }
 
-
-
 static SQLDA * process_1(char * sqlstmt, int array_size, char * delimiter, char * enclosure )
 {
 SQLDA * select_dp;
@@ -137,7 +135,7 @@ int     size = 10;
        EXEC SQL PREPARE S FROM :sqlstmt;
        EXEC SQL DECLARE C CURSOR FOR S;
 
-    if ((select_dp = sqlald(size,MAX_VNAME_LEN,MAX_INAME_LEN)) == NULL )
+    if ((select_dp = sqlald(size, MAX_VNAME_LEN, MAX_INAME_LEN)) == NULL )
         die( "Cannot allocate  memory for select descriptor." );
 
     select_dp->N = size;
@@ -184,8 +182,8 @@ int     size = 10;
 }
 
 
-static void process_2( SQLDA * select_dp, int array_size, char * delimiter, char * enclosure, char * null_string,
-  char * replace_nl )
+static void process_2( SQLDA * select_dp, int array_size, char * delimiter, char * enclosure, 
+  char * null_string, char * replace_nl )
 {
 int    last_fetch_count;
 int    row_count = 0;
@@ -244,7 +242,6 @@ char * argv[];
 
     process_parms( argc, argv );
 
-    /* Connect to ORACLE. */
     vstrcpy( oracleid, USERID );
 
     EXEC SQL WHENEVER SQLERROR DO sqlerror_hard();
@@ -260,7 +257,6 @@ char * argv[];
     select_dp = process_1( SQLSTMT, atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE );
     process_2( select_dp , atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE, NULL_STRING, REPLACE_NL );
 
-    /* Disconnect from ORACLE. */
     EXEC SQL COMMIT WORK RELEASE;
     exit(0);
 }
