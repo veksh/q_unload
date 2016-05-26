@@ -193,6 +193,13 @@ int    i,j;
                 ind_value = *(select_dp->I[i]+j);
                 char_ptr  = select_dp->V[i] + (j*select_dp->L[i]);
 
+                /* replace newlines */
+                char *pch = strstr(char_ptr, "\n");
+                while(pch != NULL) {
+                  strncpy(pch, " ", 1);
+                  pch = strstr(char_ptr, "\n");
+                }
+
                 printf( "%s%s%s%s", i?delimiter:"",
                                     enclosure,
                                     ind_value?null_string:char_ptr,
