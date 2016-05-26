@@ -19,7 +19,7 @@ static char *   ARRAY_SIZE = "10";
 static char *   DELIMITER = "|";
 static char *   ENCLOSURE = "";
 static char *   NULL_STRING = "?";
-static char *   REPLACE_NL  = NULL;
+static char *   REPLACE_NL = NULL;
 
 #define vstrcpy( a, b ) \
 (strcpy( a.arr, b ), a.len = strlen( a.arr ), a.arr)
@@ -200,10 +200,12 @@ int    i,j;
                 char_ptr  = select_dp->V[i] + (j*select_dp->L[i]);
 
                 /* replace newlines */
-                char *pch = strstr(char_ptr, "\n");
-                while(pch != NULL) {
-                  strncpy(pch, " ", 1);
-                  pch = strstr(char_ptr, "\n");
+                if (REPLACE_NL) {
+                  char *pch = strstr(char_ptr, "\n");
+                  while(pch != NULL) {
+                    strncpy(pch, REPLACE_NL, 1);
+                    pch = strstr(char_ptr, "\n");
+                  }
                 }
 
                 printf( "%s%s%s%s", i?delimiter:"",
