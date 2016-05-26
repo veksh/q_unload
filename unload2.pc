@@ -11,9 +11,9 @@
 static char *   USERID = NULL;
 static char *   SQLSTMT = NULL;
 static char *   ARRAY_SIZE = "10";
-static char *   DELIMITER = ",";
-static char *   ENCLOSURE = "\"";
-static char *   NULL_STRING = NULL;
+static char *   DELIMITER = "|";
+static char *   ENCLOSURE = "";
+static char *   NULL_STRING = "?";
 
 #define vstrcpy( a, b ) \
 (strcpy( a.arr, b ), a.len = strlen( a.arr ), a.arr)

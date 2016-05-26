@@ -5,7 +5,7 @@
 #define MAX_VNAME_LEN     30
 #define MAX_INAME_LEN     30
 
-static char *     USERID = NULL;
+static char *   USERID = NULL;
 static char *   SQLSTMT = NULL;
 static char *   ARRAY_SIZE = "10";
 
