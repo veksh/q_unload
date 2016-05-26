@@ -19,6 +19,7 @@ static char *   ARRAY_SIZE = "10";
 static char *   DELIMITER = "|";
 static char *   ENCLOSURE = "";
 static char *   NULL_STRING = "?";
+static char *   REPLACE_NL  = NULL;
 
 #define vstrcpy( a, b ) \
 (strcpy( a.arr, b ), a.len = strlen( a.arr ), a.arr)
@@ -70,6 +71,9 @@ int i;
         if ( !strncmp( argv[i], "null_string=", 12 ) )
               NULL_STRING = argv[i]+12;
         else
+        if ( !strncmp( argv[i], "replace_nl=", 11 ) )
+              REPLACE_NL = argv[i]+11;
+        else
         {
             fprintf( stderr,
                     "usage: %s %s %s %s %s %s\n",
@@ -78,7 +82,8 @@ int i;
                     "arraysize=<NN> ",
                     "delimiter=x ",
                     "enclosure=x ",
-                    "null_string=x ");
+                    "null_string=x ",
+                    "replace_nl=x");
             exit(1);
         }
     }
@@ -91,7 +96,8 @@ int i;
                 "arraysize=<NN> ",
                 "delimiter=x ",
                 "enclosure=x ",
-                "null_string=x ");
+                "null_string=x ",
+                "replace_nl=x");
         exit(1);
     }
 }
