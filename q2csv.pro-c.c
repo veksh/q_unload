@@ -212,10 +212,10 @@ int    i,j;
                   }
                 }
 
-                printf( "%s%s%s%s", i?delimiter:"",
-                                    enclosure,
-                                    ind_value?null_string:char_ptr,
-                                    enclosure );
+                printf( "%s%s%s%s", i ? delimiter : "",
+                                    ind_value? "" : enclosure,
+                                    ind_value? null_string : char_ptr,
+                                    ind_value? "" : enclosure);
             }
             row_count++;
             printf( "\n" );
