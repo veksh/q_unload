@@ -255,7 +255,7 @@ char * argv[];
     if (FORCE_SHARING) 
       exec sql alter session set cursor_sharing=force;
 
-    EXEC SQL ALTER SESSION SET NLS_DATE_FORMAT = 'DD.MM.YYYY HH24:MI:SS';
+    EXEC SQL ALTER SESSION SET NLS_DATE_FORMAT = 'DD.MM.YYYY';
 
     select_dp = process_1( SQLSTMT, atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE );
     process_2( select_dp , atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE, NULL_STRING, REPLACE_NL );
