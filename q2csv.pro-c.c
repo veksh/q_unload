@@ -234,7 +234,7 @@ char * argv[];
     EXEC SQL CONNECT :oracleid;
     fprintf(stderr, "\nConnected to ORACLE as user: %s\n\n", oracleid.arr);
 
-    EXEC SQL ALTER SESSION SET NLS_DATE_FORMAT = 'DD-MON-YYYY HH24:MI:SS';
+    EXEC SQL ALTER SESSION SET NLS_DATE_FORMAT = 'DD.MM.YYYY HH24:MI:SS';
 
     select_dp = process_1( SQLSTMT, atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE );
     process_2( select_dp , atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE, NULL_STRING );
