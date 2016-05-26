@@ -20,6 +20,7 @@ static char *   DELIMITER = "|";
 static char *   ENCLOSURE = "";
 static char *   NULL_STRING = "?";
 static char *   REPLACE_NL = NULL;
+static char *   FORCE_SHARING = NULL;
 
 #define vstrcpy( a, b ) \
 (strcpy( a.arr, b ), a.len = strlen( a.arr ), a.arr)
@@ -74,6 +75,9 @@ int i;
         if ( !strncmp( argv[i], "replace_nl=", 11 ) )
               REPLACE_NL = argv[i]+11;
         else
+        if ( !strncmp( argv[i], "share=", 6 ) )
+              FORCE_SHARING = argv[i]+6;
+        else
         {
             fprintf( stderr,
                     "usage: %s %s %s %s %s %s\n",
@@ -83,7 +87,8 @@ int i;
                     "delimiter=x ",
                     "enclosure=x ",
                     "null_string=x ",
-                    "replace_nl=x");
+                    "replace_nl=x ",
+                    "share=x");
             exit(1);
         }
     }
@@ -97,7 +102,8 @@ int i;
                 "delimiter=x ",
                 "enclosure=x ",
                 "null_string=x ",
-                "replace_nl=x");
+                "replace_nl=x ",
+                "share=x");
         exit(1);
     }
 }
