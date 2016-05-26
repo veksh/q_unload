@@ -26,4 +26,5 @@
 
 - use
 
-      ./q2csv userid=alex/$ap sqlstmt='select * from gestori.katalog where rownum < 10' > out.csv
+      ./q2csv userid=alex/$ap sqlstmt="`cat ./query.sql`" > out.csv
+       

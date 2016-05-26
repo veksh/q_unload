@@ -7,6 +7,7 @@
   based on tom kite flat.c
   like https://asktom.oracle.com/pls/asktom/f?p=100:11:0::::P11_QUESTION_ID:459020243348
   and once http://asktom.oracle.com/~tkyte/flat/index.html (404 now)
+  modifications from http://phil-sqltips.blogspot.ru/2010/06/tom-kytes-proc-arrayflat-csv-file.html
 */
 
 #define MAX_VNAME_LEN     30
@@ -15,6 +16,9 @@
 static char *   USERID = NULL;
 static char *   SQLSTMT = NULL;
 static char *   ARRAY_SIZE = "10";
+static char *   DELIMITER = "|";
+static char *   ENCLOSURE = "";
+static char *   NULL_STRING = "?";
 
 #define vstrcpy( a, b ) \
 (strcpy( a.arr, b ), a.len = strlen( a.arr ), a.arr)
@@ -31,20 +35,21 @@ static void die( char * msg )
     exit(1);
 }
 
+
 /*
-    this array contains a default mapping
-    I am using to constrain the lengths of returned columns.  It is mapping,
-    for example, the Oracle NUMBER type (type code = 2) to be 45 characters
-    long in a string.
+    this array contains a default mapping I am using to constrain the
+    lengths of returned columns.  It is mapping, for example, the Oracle
+    NUMBER type (type code = 2) to be 45 characters long in a string.
 */
 
 static int lengths[] = { -1, 0, 45, 0, 0, 0, 0, 0, 2000, 0, 0, 18, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 512, 2000 };
+
 
 static void process_parms( argc, argv )
 int    argc;
 char * argv[];
 {
-int    i;
+int i;
 
     for( i = 1; i < argc; i++ )
     {
@@ -57,22 +62,37 @@ int    i;
         if ( !strncmp( argv[i], "arraysize=", 10 ) )
               ARRAY_SIZE = argv[i]+10;
         else
+        if ( !strncmp( argv[i], "delimiter=", 10 ) )
+              DELIMITER = argv[i]+10;
+        else
+        if ( !strncmp( argv[i], "enclosure=", 10 ) )
+              ENCLOSURE = argv[i]+10;
+        else
+        if ( !strncmp( argv[i], "null_string=", 12 ) )
+              NULL_STRING = argv[i]+12;
+        else
         {
             fprintf( stderr,
-                    "usage: %s %s %s\n",
+                    "usage: %s %s %s %s %s %s\n",
                      argv[0],
                     "userid=xxx/xxx sqlstmt=query ",
-                    "arraysize=<NN>\n" );
+                    "arraysize=<NN> ",
+                    "delimiter=x ",
+                    "enclosure=x ",
+                    "null_string=x ");
             exit(1);
         }
     }
     if ( USERID == NULL  || SQLSTMT == NULL )
     {
         fprintf( stderr,
-                "usage: %s %s %s\n",
+                "usage: %s %s %s %s %s %s\n",
                  argv[0],
                 "userid=xxx/xxx sqlstmt=query ",
-                "arraysize=<NN>\n" );
+                "arraysize=<NN> ",
+                "delimiter=x ",
+                "enclosure=x ",
+                "null_string=x ");
         exit(1);
     }
 }
@@ -90,7 +110,7 @@ static void sqlerror_hard()
 
 
 
-static SQLDA * process_1(char * sqlstmt, int array_size )
+static SQLDA * process_1(char * sqlstmt, int array_size, char * delimiter, char * enclosure )
 {
 SQLDA * select_dp;
 int     i, j;
@@ -153,13 +173,13 @@ int     size = 10;
 }
 
 
-static void process_2( SQLDA * select_dp, int array_size )
+static void process_2( SQLDA * select_dp, int array_size, char * delimiter, char * enclosure, char * null_string )
 {
 int    last_fetch_count;
 int    row_count = 0;
 short  ind_value;
 char   * char_ptr;
-int    i, j;
+int    i,j;
 
     for ( last_fetch_count = 0;
           ;
@@ -174,7 +194,10 @@ int    i, j;
                 ind_value = *(select_dp->I[i]+j);
                 char_ptr  = select_dp->V[i] + (j*select_dp->L[i]);
 
-                printf( "%s%s", i?",":"", ind_value?"(null)":char_ptr );
+                printf( "%s%s%s%s", i?delimiter:"",
+                                    enclosure,
+                                    ind_value?null_string:char_ptr,
+                                    enclosure );
             }
             row_count++;
             printf( "\n" );
@@ -213,8 +236,8 @@ char * argv[];
 
     EXEC SQL ALTER SESSION SET NLS_DATE_FORMAT = 'DD-MON-YYYY HH24:MI:SS';
 
-    select_dp = process_1( SQLSTMT, atoi(ARRAY_SIZE) );
-    process_2( select_dp , atoi(ARRAY_SIZE));
+    select_dp = process_1( SQLSTMT, atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE );
+    process_2( select_dp , atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE, NULL_STRING );
 
     /* Disconnect from ORACLE. */
     EXEC SQL COMMIT WORK RELEASE;
