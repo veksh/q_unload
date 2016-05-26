@@ -1,3 +1,4 @@
+# original
 - get code for flat.c from tom kite
     - <https://asktom.oracle.com/pls/asktom/f?p=100:11:0::::P11_QUESTION_ID:459020243348>
 - gen c from pro*c
@@ -12,4 +13,17 @@
 
 - use
 
-      
+      ./unload userid=alex/$ap sqlstmt='select * from gestori.katalog where rownum < 10'  
+
+# my 
+- gen c from pro*c
+
+      proc iname=q2csv.pro-c.c oname=q2csv.c
+
+- compile
+
+      gcc q2csv.c -L $ORACLE_HOME/lib -l clntsh -o q2csv
+
+- use
+
+      ./q2csv userid=alex/$ap sqlstmt='select * from gestori.katalog where rownum < 10' > out.csv
