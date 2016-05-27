@@ -1,8 +1,5 @@
-unload
-unload.c
-unload2
-unload2.c
 q2csv
 q2csv.c
 *.lis
 *.csv
+*.sql
