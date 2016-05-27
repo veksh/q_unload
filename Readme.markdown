@@ -17,8 +17,8 @@ original [array-flat][kyte-flat] utility.
 # Usage
 - basic
 
-        ./q2csv userid=user/$pass sqlstmt='select * from gestori.katalog where rownum < 10'  
-        ./q2csv userid=user/$pass sqlstmt="$(cat query.sql)" enclosure='"' replace_nl=' ' share=y > t.dat
+        ./q2csv userid=user/$pass@server sqlstmt='select * from gestori.katalog where rownum < 10'  
+        ./q2csv userid=user/$pass@server sqlstmt="$(cat query.sql)" enclosure='"' replace_nl=' ' share=y > t.dat
 
 - options
     - `userid`: credentials in `user/pass` format; pass with env var
