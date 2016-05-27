@@ -37,6 +37,21 @@ static void die( char * msg )
     exit(1);
 }
 
+static void print_usage( char * progname)
+{
+    fprintf( stderr,
+             "usage: %s %s %s %s %s %s %s %s %s\n",
+              progname,
+             "userid=xxx/xxx",
+             "sqlstmt=query",
+             "arraysize=<NN>",
+             "delimiter=x",
+             "enclosure=x",
+             "null_string=x",
+             "replace_nl=x",
+             "share=x");
+}
+
 /*
     this array contains a default mapping I am using to constrain the
     lengths of returned columns.  It is mapping, for example, the Oracle
@@ -79,31 +94,13 @@ int i;
               FORCE_SHARING = argv[i]+6;
         else
         {
-            fprintf( stderr,
-                    "usage: %s %s %s %s %s %s\n",
-                     argv[0],
-                    "userid=xxx/xxx sqlstmt=query ",
-                    "arraysize=<NN> ",
-                    "delimiter=x ",
-                    "enclosure=x ",
-                    "null_string=x ",
-                    "replace_nl=x ",
-                    "share=x");
+            print_usage(argv[0]);
             exit(1);
         }
     }
     if ( USERID == NULL  || SQLSTMT == NULL )
     {
-        fprintf( stderr,
-                "usage: %s %s %s %s %s %s\n",
-                 argv[0],
-                "userid=xxx/xxx sqlstmt=query ",
-                "arraysize=<NN> ",
-                "delimiter=x ",
-                "enclosure=x ",
-                "null_string=x ",
-                "replace_nl=x ",
-                "share=x");
+        print_usage(argv[0]);
         exit(1);
     }
 }
