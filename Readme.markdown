@@ -21,11 +21,14 @@ original [array-flat][kyte-flat] utility.
         ./q2csv userid=user/$pass sqlstmt="$(cat query.sql)" enclosure='"' replace_nl=' ' share=y > t.dat
 
 - options
+    - `userid`: credentials in `user/pass` format; pass with env var
+    - `stmt`: query to execute, `"$(cat file.sql)"` to read from file
     - `delimiter`: field separator, default "|"
     - `enclosure`: enclosing quotes for string fields, default: none
     - `null_string`: null replacement string, default "?"
     - `replace_nl`: newline replacement char, default: keep newlines
     - `share`: if not empty, enable forced cursor sharing for session
+    - `arraysize`: fetch array size, default 10 records
 
 # Missed features and todo
 - bind vars
