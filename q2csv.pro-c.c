@@ -136,7 +136,7 @@ int     size = 10;
        EXEC SQL DECLARE C CURSOR FOR S;
 
     if ((select_dp = sqlald(size, MAX_VNAME_LEN, MAX_INAME_LEN)) == NULL )
-        die( "Cannot allocate  memory for select descriptor." );
+        die( "Cannot allocate memory for select descriptor." );
 
     select_dp->N = size;
     EXEC SQL DESCRIBE SELECT LIST FOR S INTO select_dp;
@@ -147,7 +147,7 @@ int     size = 10;
         size = -select_dp->F;
         sqlclu( select_dp );
         if ((select_dp = sqlald (size, MAX_VNAME_LEN, MAX_INAME_LEN)) == NULL )
-          die( "Cannot allocate  memory for descriptor." );
+          die( "Cannot allocate memory for descriptor." );
         EXEC SQL DESCRIBE SELECT LIST FOR S INTO select_dp;
     }
     select_dp->N = select_dp->F;
@@ -167,20 +167,19 @@ int     size = 10;
         }
         else select_dp->L[i] += 5;
 
-        select_dp->T[i] = 5;
         select_dp->V[i] = (char *)malloc( select_dp->L[i] * array_size );
 
         for( j = MAX_VNAME_LEN-1;
              j > 0 && select_dp->S[i][j] == ' ';
              j--);
-        fprintf (stderr, "%s%.*s", i?",":"", j+1, select_dp->S[i]);
+        fprintf (stderr, "%s%.*s (%d)", i ? "," : "", j+1, select_dp->S[i], select_dp->T[i]);
+        // select_dp->T[i] = 5;
     }
     fprintf( stderr, "\n" );
 
     EXEC SQL OPEN C;
     return select_dp;
 }
-
 
 static void process_2( SQLDA * select_dp, int array_size, char * delimiter, char * enclosure, 
   char * null_string, char * replace_nl )
@@ -190,6 +189,15 @@ int    row_count = 0;
 short  ind_value;
 char   * char_ptr;
 int    i,j;
+char   * enc;
+short  * ftypes;
+
+    ftypes = malloc(select_dp->F);
+    for (i = 0; i < select_dp->F; i++)
+    {
+        ftypes[i] = select_dp->T[i];
+        select_dp->T[i] = 5;
+    }
 
     for ( last_fetch_count = 0;
           ;
@@ -212,10 +220,15 @@ int    i,j;
                   }
                 }
 
+                if (ftypes[i] == 1)
+                  enc = enclosure;
+                else
+                  enc = "";
+
                 printf( "%s%s%s%s", i ? delimiter : "",
-                                    ind_value? "" : enclosure,
+                                    ind_value? "" : enc,
                                     ind_value? null_string : char_ptr,
-                                    ind_value? "" : enclosure);
+                                    ind_value? "" : enc);
             }
             row_count++;
             printf( "\n" );
@@ -224,6 +237,7 @@ int    i,j;
     }
 
     sqlclu(select_dp);
+    free(ftypes);
 
     EXEC SQL CLOSE C;
 
