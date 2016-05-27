@@ -172,8 +172,7 @@ int     size = 10;
         for( j = MAX_VNAME_LEN-1;
              j > 0 && select_dp->S[i][j] == ' ';
              j--);
-        fprintf (stderr, "%s%.*s (%d)", i ? "," : "", j+1, select_dp->S[i], select_dp->T[i]);
-        // select_dp->T[i] = 5;
+        fprintf (stderr, "%s%.*s", i ? "," : "", j+1, select_dp->S[i], select_dp->T[i]);
     }
     fprintf( stderr, "\n" );
 
@@ -192,6 +191,7 @@ int    i,j;
 char   * enc;
 short  * ftypes;
 
+    // need to set type to 5 ("string") for autoformat; save actual types to enclose only strings
     ftypes = malloc(select_dp->F);
     for (i = 0; i < select_dp->F; i++)
     {
@@ -220,15 +220,15 @@ short  * ftypes;
                   }
                 }
 
-                if (ftypes[i] == 1)
+                if (ftypes[i] == 1 && !ind_value)
                   enc = enclosure;
                 else
                   enc = "";
 
                 printf( "%s%s%s%s", i ? delimiter : "",
-                                    ind_value? "" : enc,
+                                    enc,
                                     ind_value? null_string : char_ptr,
-                                    ind_value? "" : enc);
+                                    enc);
             }
             row_count++;
             printf( "\n" );
