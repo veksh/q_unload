@@ -1,4 +1,4 @@
-export LD_LIBRARY_PATH = /apps/oracle/base/software/11.2.0.4/lib/
+export LD_LIBRARY_PATH = ${ORACLE_HOME}/lib/
 
 q2csv: q2csv.pro-c.c
 	proc iname=q2csv.pro-c.c oname=q2csv.c
