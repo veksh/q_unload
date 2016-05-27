@@ -192,7 +192,7 @@ char   * enc;
 short  * ftypes;
 
     // need to set type to 5 ("string") for autoformat; save actual types to enclose only strings
-    ftypes = malloc(select_dp->F);
+    ftypes = malloc(sizeof(short)*select_dp->F);
     for (i = 0; i < select_dp->F; i++)
     {
         ftypes[i] = select_dp->T[i];
