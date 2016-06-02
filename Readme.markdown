@@ -13,16 +13,18 @@ original [array-flat][kyte-flat] utility.
     - newline replacement char
     - forced cursor sharing
 - ablity to change fields separator and optionally enclose strings
+- reading query from file
 
 # Usage
 - basic
 
         ./q2csv userid=user/$pass@server sqlstmt='select * from gestori.katalog where rownum < 10'  
-        ./q2csv userid=user/$pass@server sqlstmt="$(cat query.sql)" enclosure='"' replace_nl=' ' share=y > t.dat
+        ./q2csv userid=user/$pass@server sqlfile=query.sql enclosure='"' replace_nl=' ' share=y > t.dat
 
 - options
     - `userid`: credentials in `user/pass` format; pass with env var
-    - `stmt`: query to execute, `"$(cat file.sql)"` to read from file
+    - `sqlstmt`: query to execute (for inline)
+    - `sqlfile`: query file name (for saved)
     - `delimiter`: field separator, default "|"
     - `enclosure`: enclosing quotes for string fields, default: none
     - `null_string`: null replacement string, default "?"
@@ -33,5 +35,4 @@ original [array-flat][kyte-flat] utility.
 # Missed features and todo
 - bind vars
 - date and number format fine-tuning
-- reading query from file or stdin
 - setting dbms_application_info
