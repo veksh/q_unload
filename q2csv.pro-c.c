@@ -15,6 +15,7 @@
 
 static char * USERID = NULL;
 static char * SQLSTMT = NULL;
+static char * SQLFILE = NULL;
 static char * ARRAY_SIZE = "10";
 static char * DELIMITER = "|";
 static char * ENCLOSURE = "";
@@ -44,6 +45,7 @@ static void print_usage( char * progname)
               progname,
              "userid=xxx/xxx",
              "sqlstmt=query",
+             "sqlfile=<path>",
              "arraysize=<NN>",
              "delimiter=x",
              "enclosure=x",
@@ -75,6 +77,9 @@ int i;
         if ( !strncmp( argv[i], "sqlstmt=", 8 ) )
               SQLSTMT = argv[i]+8;
         else
+        if ( !strncmp( argv[i], "sqlfile=", 8 ) )
+              SQLFILE = argv[i]+8;
+        else
         if ( !strncmp( argv[i], "arraysize=", 10 ) )
               ARRAY_SIZE = argv[i]+10;
         else
@@ -98,11 +103,40 @@ int i;
             exit(1);
         }
     }
-    if ( USERID == NULL  || SQLSTMT == NULL )
+    if ( USERID == NULL || (SQLSTMT == NULL && SQLFILE == NULL) )
     {
         print_usage(argv[0]);
         exit(1);
     }
+}
+
+#include <stdio.h>
+#include <stdlib.h>
+ 
+static char * read_file(char * filepath)
+{
+  char *buffer;
+  FILE *fh = fopen(filepath, "rb");
+  if ( fh != NULL )
+  {
+    fseek(fh, 0L, SEEK_END);
+    long s = ftell(fh);
+    rewind(fh);
+    buffer = malloc(s);
+    if ( buffer != NULL )
+    {
+      fread(buffer, s, 1, fh);
+      // we can now close the file
+      fclose(fh); fh = NULL;
+ 
+      // do something, e.g.
+      fwrite(buffer, s, 1, stdout);
+ 
+      // free(buffer);
+    }
+    if (fh != NULL) fclose(fh);
+  }
+  return buffer;
 }
 
 static void sqlerror_hard()
@@ -264,6 +298,9 @@ char * argv[];
       exec sql alter session set cursor_sharing=force;
 
     EXEC SQL ALTER SESSION SET NLS_DATE_FORMAT = 'DD.MM.YYYY';
+
+    if (SQLFILE)
+      SQLSTMT = read_file(SQLFILE);
 
     select_dp = process_1( SQLSTMT, atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE );
     process_2( select_dp , atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE, NULL_STRING, REPLACE_NL );
