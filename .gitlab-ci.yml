@@ -3,6 +3,7 @@ test:
     - make
 
 q2csv:
+  type: deploy
   script:
     - make
   artifacts:
