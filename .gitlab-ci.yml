@@ -2,3 +2,12 @@ test:
   script:
     - make
 
+q2csv:
+  script:
+    - make
+  artifacts:
+    name: "${CI_BUILD_NAME}_${CI_BUILD_REF_NAME}"
+    paths:
+    - q2csv
+  only:
+    - tags
