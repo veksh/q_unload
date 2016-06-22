@@ -213,7 +213,7 @@ static void process_2( SQLDA * select_dp, int array_size, char * delimiter, char
 int    last_fetch_count;
 int    row_count = 0;
 short  ind_value;
-char   * char_ptr;
+char   * field_str;
 int    i,j;
 char   * enc;
 short  * ftypes;
@@ -238,28 +238,28 @@ char   * escaped, * res_str;
             for (i = 0; i < select_dp->F; i++)
             {
                 ind_value = *(select_dp->I[i]+j);
-                char_ptr  = select_dp->V[i] + (j*select_dp->L[i]);
+                field_str = select_dp->V[i] + (j*select_dp->L[i]);
                 escaped   = NULL;
 
                 if (replace_nl) {
-                  char *pch = strstr(char_ptr, "\n");
+                  char *pch = strstr(field_str, "\n");
                   while(pch != NULL) {
                     strncpy(pch, replace_nl, 1);
-                    pch = strstr(char_ptr, "\n");
+                    pch = strstr(field_str, "\n");
                   }
                 }
 
                 if (encl_esc && ftypes[i] == 1) {
                     // TODO: artifical limit of 16 quotes in string, too lazy to count 
-                    escaped = malloc(strlen(char_ptr) + 16);
+                    escaped = malloc(strlen(field_str) + 16);
                     size_t p, d = 0;
-                    size_t src_len = strlen(char_ptr);
+                    size_t src_len = strlen(field_str);
                     for (p = 0; p <= src_len; p++) {
                         // TODO working only for 1-char encl and encl_esc
-                        if (char_ptr[p] == enclosure[0]) {
+                        if (field_str[p] == enclosure[0]) {
                             escaped[d++] = encl_esc[0]; 
                         }
-                        escaped[d++] = char_ptr[p]; 
+                        escaped[d++] = field_str[p]; 
                     }
                 }
 
@@ -271,7 +271,7 @@ char   * escaped, * res_str;
                 if (escaped != NULL) {
                   res_str = escaped;
                 } else {
-                  res_str = char_ptr;
+                  res_str = field_str;
                 }
                 printf( "%s%s%s%s", i ? delimiter : "",
                                     enc,
