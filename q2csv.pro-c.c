@@ -23,6 +23,8 @@ static char * ENCL_ESC = NULL;
 static char * NULL_STRING = "?";
 static char * REPLACE_NL = NULL;
 static char * FORCE_SHARING = NULL;
+static char * MOD_INFO = NULL;
+static char * CLI_INFO = NULL;
 
 #define vstrcpy( a, b ) \
 (strcpy( a.arr, b ), a.len = strlen( a.arr ), a.arr)
@@ -53,7 +55,9 @@ static void print_usage( char * progname)
              "encl_esc=x",
              "null_string=x",
              "replace_nl=x",
-             "share=x");
+             "share=x",
+             "mod_info=x",
+             "cli_info=x");
 }
 
 /*
@@ -102,6 +106,12 @@ int i;
         else
         if ( !strncmp( argv[i], "share=", 6 ) )
               FORCE_SHARING = argv[i]+6;
+        else
+        if ( !strncmp( argv[i], "mod_info=", 8 ) )
+              MOD_INFO = argv[i]+8;
+        else
+        if ( !strncmp( argv[i], "cli_info=", 8 ) )
+              CLI_INFO = argv[i]+8;
         else
         {
             print_usage(argv[0]);
@@ -314,7 +324,15 @@ char * argv[];
     fprintf(stderr, "Connected to ORACLE\n");
 
     if (FORCE_SHARING) 
-      exec sql alter session set cursor_sharing=force;
+      EXEC SQL alter session set cursor_sharing=force;
+
+    // :cli_inf
+    if (MOD_INFO)
+      EXEC SQL EXECUTE IMMEDIATE
+        begin 
+          dbms_application_info.set_client_info('UID="test", HOST="test"'); 
+        end; 
+      END-EXEC;
 
     EXEC SQL ALTER SESSION SET NLS_DATE_FORMAT = 'DD.MM.YYYY';
 
