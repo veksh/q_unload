@@ -23,6 +23,9 @@ static char * ENCL_ESC = NULL;
 static char * NULL_STRING = "?";
 static char * REPLACE_NL = NULL;
 static char * FORCE_SHARING = NULL;
+static char * CLI_INFO = NULL;
+static char * MOD_INFO = NULL;
+static char * ACT_INFO = NULL;
 
 #define vstrcpy( a, b ) \
 (strcpy( a.arr, b ), a.len = strlen( a.arr ), a.arr)
@@ -42,7 +45,7 @@ static void die( char * msg )
 static void print_usage( char * progname)
 {
     fprintf( stderr,
-             "usage: %s %s %s %s %s %s %s %s %s\n",
+             "usage: %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
               progname,
              "userid=xxx/xxx",
              "sqlstmt=query",
@@ -53,7 +56,10 @@ static void print_usage( char * progname)
              "encl_esc=x",
              "null_string=x",
              "replace_nl=x",
-             "share=x");
+             "share=x",
+             "cli_info=x",
+             "mod_info=x",
+             "act_info=x");
 }
 
 /*
@@ -63,7 +69,6 @@ static void print_usage( char * progname)
 */
 
 static int lengths[] = { -1, 0, 45, 0, 0, 0, 0, 0, 2000, 0, 0, 18, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 512, 2000 };
-
 
 static void process_parms( argc, argv )
 int    argc;
@@ -102,6 +107,15 @@ int i;
         else
         if ( !strncmp( argv[i], "share=", 6 ) )
               FORCE_SHARING = argv[i]+6;
+        else
+        if ( !strncmp( argv[i], "cli_info=", 9 ) )
+              CLI_INFO = argv[i]+9;
+        else
+        if ( !strncmp( argv[i], "mod_info=", 9 ) )
+              MOD_INFO = argv[i]+9;
+        else
+        if ( !strncmp( argv[i], "act_info=", 9 ) )
+              ACT_INFO = argv[i]+9;
         else
         {
             print_usage(argv[0]);
@@ -313,10 +327,19 @@ char * argv[];
     EXEC SQL CONNECT :oracleid;
     fprintf(stderr, "Connected to ORACLE\n");
 
-    if (FORCE_SHARING) 
-      exec sql alter session set cursor_sharing=force;
+    EXEC SQL alter session set nls_date_format = 'DD.MM.YYYY';
 
-    EXEC SQL ALTER SESSION SET NLS_DATE_FORMAT = 'DD.MM.YYYY';
+    if (FORCE_SHARING) 
+      EXEC SQL alter session set cursor_sharing = force;
+
+    if (CLI_INFO) 
+      EXEC SQL CALL dbms_application_info.set_client_info(:CLI_INFO);
+
+    if (MOD_INFO) {
+      if (!ACT_INFO)
+        ACT_INFO = "";
+      EXEC SQL CALL dbms_application_info.set_module(:MOD_INFO, :ACT_INFO);
+    }
 
     if (SQLFILE)
       SQLSTMT = read_file(SQLFILE);
