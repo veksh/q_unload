@@ -328,19 +328,11 @@ char * argv[];
       EXEC SQL alter session set cursor_sharing = force;
 
     if (CLI_INFO) {
-      // char * set_cli = "begin dbms_application_info.set_client_info('uid=\"test\", host=\"test\"'); end";
-      // printf("running %s\n", set_cli);
-      // EXEC SQL EXECUTE set_cli;
-      EXEC SQL EXECUTE
-        begin
-          dbms_application_info.set_client_info('uid="test", host="test"');
-        end;
-      END-EXEC;
+      EXEC SQL CALL dbms_application_info.set_client_info('uid="test", host="test"');
     }
 
     if (MOD_INFO) {
-      char * set_mod = "dbms_application_info.set_module(module_name => 'test, proc=test', action_name => 'test'";
-      EXEC SQL EXECUTE set_mod;
+      EXEC SQL CALL dbms_application_info.set_module('test, proc=test', 'test');
     }
 
     if (SQLFILE)
