@@ -250,12 +250,12 @@ char   * escaped, * res_str;
                 }
 
                 if (encl_esc && ftypes[i] == 1) {
-                    // TODO: upto 16 quotes in string 
+                    // TODO: artifical limit of 16 quotes in string, too lazy to count 
                     escaped = malloc(strlen(char_ptr) + 16);
                     size_t p, d = 0;
                     size_t src_len = strlen(char_ptr);
                     for (p = 0; p <= src_len; p++) {
-                        // TODO test is bad: must compare/concat full strings if enclosure is > 1 char
+                        // TODO working only for 1-char encl and encl_esc
                         if (char_ptr[p] == enclosure[0]) {
                             escaped[d++] = encl_esc[0]; 
                         }
