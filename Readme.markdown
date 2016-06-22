@@ -20,6 +20,10 @@ original [array-flat][kyte-flat] utility.
 
         ./q2csv userid=user/$pass@server sqlstmt='select * from gestori.katalog where rownum < 10'  
         ./q2csv userid=user/$pass@server sqlfile=query.sql enclosure='"' replace_nl=' ' share=y > t.dat
+        ./q2csv userid=user/$pass@server sqlfile=query.sql enclosure='"' encl_esc='"' \
+           cli_info='uid="batch", host="here"' \ 
+           mod_info='ges SPb, proc="load-table-mail"' \
+           act_info='get-prog ora-ges.p'
 
 - options
     - `userid`: credentials in `user/pass` format; pass with env var
@@ -32,6 +36,7 @@ original [array-flat][kyte-flat] utility.
     - `replace_nl`: newline replacement char, default: keep newlines
     - `share`: if not empty, enable forced cursor sharing for session
     - `arraysize`: fetch array size, default 10 records
+    - `cli_info`, `mod_info`, `act_info`: client, module and action for `dbms_application_info`
 
 # Missed features and todo
 - bind vars
