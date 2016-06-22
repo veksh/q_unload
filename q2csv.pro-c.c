@@ -217,6 +217,7 @@ char   * char_ptr;
 int    i,j;
 char   * enc;
 short  * ftypes;
+char   * escaped;
 
     // need to set type to 5 ("string") for autoformat; save actual types to enclose only strings
     ftypes = malloc(sizeof(short)*select_dp->F);
@@ -238,6 +239,7 @@ short  * ftypes;
             {
                 ind_value = *(select_dp->I[i]+j);
                 char_ptr  = select_dp->V[i] + (j*select_dp->L[i]);
+                escaped   = NULL;
 
                 if (replace_nl) {
                   char *pch = strstr(char_ptr, "\n");
@@ -248,16 +250,16 @@ short  * ftypes;
                 }
 
                 if (encl_esc && ftypes[i] == 1) {
+                    // upto 16 quotes in string 
+                    escaped = malloc(strlen(char_ptr) + 16);
                     size_t p, d = 0;
-                    char * escaped = malloc(strlen(char_ptr));
                     size_t src_len = strlen(char_ptr);
                     for (p = 0; p <= src_len; p++) {
-                        if (char_ptr[p] == '"') {
-                            escaped[d++] = '!'; 
-                            escaped[d++] = 'q'; 
-                        } else {
-                            escaped[d++] = char_ptr[p]; 
+                        // test is bad: must compare/concat full strings if enclosure is > 1 char
+                        if (char_ptr[p] == enclosure[0]) {
+                            escaped[d++] = '#'; 
                         }
+                        escaped[d++] = char_ptr[p]; 
                     }
                     printf("(copy: @%s@)", escaped);
                 }
@@ -271,6 +273,8 @@ short  * ftypes;
                                     enc,
                                     ind_value? null_string : char_ptr,
                                     enc);
+
+                if (escaped != NULL) { free(escaped); }
             }
             row_count++;
             printf( "\n" );
