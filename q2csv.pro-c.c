@@ -68,7 +68,6 @@ static void print_usage( char * progname)
 
 static int lengths[] = { -1, 0, 45, 0, 0, 0, 0, 0, 2000, 0, 0, 18, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 512, 2000 };
 
-
 static void process_parms( argc, argv )
 int    argc;
 char * argv[];
@@ -329,8 +328,14 @@ char * argv[];
       EXEC SQL alter session set cursor_sharing = force;
 
     if (CLI_INFO) {
-      char * set_cli = "begin dbms_application_info.set_client_info('uid=\"test\", host=\"test\"'); end";
-      EXEC SQL EXECUTE set_cli;
+      // char * set_cli = "begin dbms_application_info.set_client_info('uid=\"test\", host=\"test\"'); end";
+      // printf("running %s\n", set_cli);
+      // EXEC SQL EXECUTE set_cli;
+      EXEC SQL EXECUTE
+        begin
+          dbms_application_info.set_client_info('uid="test", host="test"');
+        end;
+      END-EXEC;
     }
 
     if (MOD_INFO) {
