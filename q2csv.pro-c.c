@@ -19,6 +19,7 @@ static char * SQLFILE = NULL;
 static char * ARRAY_SIZE = "10";
 static char * DELIMITER = "|";
 static char * ENCLOSURE = "";
+static char * ENCL_ESC = "";
 static char * NULL_STRING = "?";
 static char * REPLACE_NL = NULL;
 static char * FORCE_SHARING = NULL;
@@ -49,6 +50,7 @@ static void print_usage( char * progname)
              "arraysize=<NN>",
              "delimiter=x",
              "enclosure=x",
+             "encl_esc=x",
              "null_string=x",
              "replace_nl=x",
              "share=x");
@@ -88,6 +90,9 @@ int i;
         else
         if ( !strncmp( argv[i], "enclosure=", 10 ) )
               ENCLOSURE = argv[i]+10;
+        else
+        if ( !strncmp( argv[i], "encl_esc=", 9 ) )
+              ENCL_ESC = argv[i]+9;
         else
         if ( !strncmp( argv[i], "null_string=", 12 ) )
               NULL_STRING = argv[i]+12;
