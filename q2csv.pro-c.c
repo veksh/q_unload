@@ -344,9 +344,6 @@ char * argv[];
     if (SQLFILE)
       SQLSTMT = read_file(SQLFILE);
 
-    char * c;
-    c = getchar();
-
     select_dp = process_1( SQLSTMT, atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE );
     process_2( select_dp , atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE, NULL_STRING, REPLACE_NL, ENCL_ESC );
 
