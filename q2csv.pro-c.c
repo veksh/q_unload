@@ -208,7 +208,7 @@ int     size = 10;
 }
 
 static void process_2( SQLDA * select_dp, int array_size, char * delimiter, char * enclosure, 
-  char * null_string, char * replace_nl )
+  char * null_string, char * replace_nl, char * encl_esc )
 {
 int    last_fetch_count;
 int    row_count = 0;
@@ -245,6 +245,21 @@ short  * ftypes;
                     strncpy(pch, replace_nl, 1);
                     pch = strstr(char_ptr, "\n");
                   }
+                }
+
+                if (encl_esc && ftypes[i] == 1) {
+                    size_t p, d = 0;
+                    char * escaped = malloc(strlen(char_ptr));
+                    size_t src_len = strlen(char_ptr);
+                    for (p = 0; p <= src_len; p++) {
+                        if (char_ptr[p] == '"') {
+                            escaped[d++] = '!'; 
+                            escaped[d++] = 'q'; 
+                        } else {
+                            escaped[d++] = char_ptr[p]; 
+                        }
+                    }
+                    printf("(copy: @%s@)", escaped);
                 }
 
                 if (ftypes[i] == 1 && !ind_value)
@@ -299,7 +314,7 @@ char * argv[];
       SQLSTMT = read_file(SQLFILE);
 
     select_dp = process_1( SQLSTMT, atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE );
-    process_2( select_dp , atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE, NULL_STRING, REPLACE_NL );
+    process_2( select_dp , atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE, NULL_STRING, REPLACE_NL, ENCL_ESC );
 
     EXEC SQL COMMIT WORK RELEASE;
     exit(0);
