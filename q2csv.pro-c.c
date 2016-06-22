@@ -25,6 +25,7 @@ static char * REPLACE_NL = NULL;
 static char * FORCE_SHARING = NULL;
 static char * CLI_INFO = NULL;
 static char * MOD_INFO = NULL;
+static char * ACT_INFO = NULL;
 
 #define vstrcpy( a, b ) \
 (strcpy( a.arr, b ), a.len = strlen( a.arr ), a.arr)
@@ -44,7 +45,7 @@ static void die( char * msg )
 static void print_usage( char * progname)
 {
     fprintf( stderr,
-             "usage: %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
+             "usage: %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
               progname,
              "userid=xxx/xxx",
              "sqlstmt=query",
@@ -57,7 +58,8 @@ static void print_usage( char * progname)
              "replace_nl=x",
              "share=x",
              "cli_info=x",
-             "mod_info=x");
+             "mod_info=x",
+             "act_info=x");
 }
 
 /*
@@ -111,6 +113,9 @@ int i;
         else
         if ( !strncmp( argv[i], "mod_info=", 8 ) )
               MOD_INFO = argv[i]+8;
+        else
+        if ( !strncmp( argv[i], "act_info=", 8 ) )
+              ACT_INFO = argv[i]+8;
         else
         {
             print_usage(argv[0]);
@@ -328,11 +333,16 @@ char * argv[];
       EXEC SQL alter session set cursor_sharing = force;
 
     if (CLI_INFO) {
-      EXEC SQL CALL dbms_application_info.set_client_info('uid="test", host="test"');
+      //EXEC SQL CALL dbms_application_info.set_client_info('uid="test", host="test"');
+      printf("*** cli: %s\n", CLI_INFO);
+      EXEC SQL CALL dbms_application_info.set_client_info(:CLI_INFO);
     }
 
     if (MOD_INFO) {
-      EXEC SQL CALL dbms_application_info.set_module('test, proc=test', 'test');
+      if (!ACT_INFO)
+        ACT_INFO = "";
+      printf("*** mod: %s, act: %s\n", MOD_INFO, ACT_INFO);
+      EXEC SQL CALL dbms_application_info.set_module(:MOD_INFO, :ACT_INFO);
     }
 
     if (SQLFILE)
