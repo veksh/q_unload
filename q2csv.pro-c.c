@@ -19,6 +19,7 @@ static char * SQLFILE = NULL;
 static char * ARRAY_SIZE = "10";
 static char * DELIMITER = "|";
 static char * ENCLOSURE = "";
+static char * ENCL_ESC = NULL;
 static char * NULL_STRING = "?";
 static char * REPLACE_NL = NULL;
 static char * FORCE_SHARING = NULL;
@@ -49,6 +50,7 @@ static void print_usage( char * progname)
              "arraysize=<NN>",
              "delimiter=x",
              "enclosure=x",
+             "encl_esc=x",
              "null_string=x",
              "replace_nl=x",
              "share=x");
@@ -88,6 +90,9 @@ int i;
         else
         if ( !strncmp( argv[i], "enclosure=", 10 ) )
               ENCLOSURE = argv[i]+10;
+        else
+        if ( !strncmp( argv[i], "encl_esc=", 9 ) )
+              ENCL_ESC = argv[i]+9;
         else
         if ( !strncmp( argv[i], "null_string=", 12 ) )
               NULL_STRING = argv[i]+12;
@@ -203,15 +208,16 @@ int     size = 10;
 }
 
 static void process_2( SQLDA * select_dp, int array_size, char * delimiter, char * enclosure, 
-  char * null_string, char * replace_nl )
+  char * null_string, char * replace_nl, char * encl_esc )
 {
 int    last_fetch_count;
 int    row_count = 0;
 short  ind_value;
-char   * char_ptr;
+char   * field_str;
 int    i,j;
 char   * enc;
 short  * ftypes;
+char   * escaped, * res_str;
 
     // need to set type to 5 ("string") for autoformat; save actual types to enclose only strings
     ftypes = malloc(sizeof(short)*select_dp->F);
@@ -232,14 +238,29 @@ short  * ftypes;
             for (i = 0; i < select_dp->F; i++)
             {
                 ind_value = *(select_dp->I[i]+j);
-                char_ptr  = select_dp->V[i] + (j*select_dp->L[i]);
+                field_str = select_dp->V[i] + (j*select_dp->L[i]);
+                escaped   = NULL;
 
                 if (replace_nl) {
-                  char *pch = strstr(char_ptr, "\n");
+                  char *pch = strstr(field_str, "\n");
                   while(pch != NULL) {
                     strncpy(pch, replace_nl, 1);
-                    pch = strstr(char_ptr, "\n");
+                    pch = strstr(field_str, "\n");
                   }
+                }
+
+                if (encl_esc && ftypes[i] == 1) {
+                    // TODO: artifical limit of 16 quotes in string, too lazy to count 
+                    escaped = malloc(strlen(field_str) + 16);
+                    size_t p, d = 0;
+                    size_t src_len = strlen(field_str);
+                    for (p = 0; p <= src_len; p++) {
+                        // TODO working only for 1-char encl and encl_esc
+                        if (field_str[p] == enclosure[0]) {
+                            escaped[d++] = encl_esc[0]; 
+                        }
+                        escaped[d++] = field_str[p]; 
+                    }
                 }
 
                 if (ftypes[i] == 1 && !ind_value)
@@ -247,10 +268,17 @@ short  * ftypes;
                 else
                   enc = "";
 
+                if (escaped != NULL) {
+                  res_str = escaped;
+                } else {
+                  res_str = field_str;
+                }
                 printf( "%s%s%s%s", i ? delimiter : "",
                                     enc,
-                                    ind_value? null_string : char_ptr,
+                                    ind_value? null_string : res_str,
                                     enc);
+
+                if (escaped != NULL) { free(escaped); }
             }
             row_count++;
             printf( "\n" );
@@ -294,7 +322,7 @@ char * argv[];
       SQLSTMT = read_file(SQLFILE);
 
     select_dp = process_1( SQLSTMT, atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE );
-    process_2( select_dp , atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE, NULL_STRING, REPLACE_NL );
+    process_2( select_dp , atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE, NULL_STRING, REPLACE_NL, ENCL_ESC );
 
     EXEC SQL COMMIT WORK RELEASE;
     exit(0);
