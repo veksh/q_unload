@@ -217,7 +217,7 @@ char   * char_ptr;
 int    i,j;
 char   * enc;
 short  * ftypes;
-char   * escaped;
+char   * escaped, * res_str;
 
     // need to set type to 5 ("string") for autoformat; save actual types to enclose only strings
     ftypes = malloc(sizeof(short)*select_dp->F);
@@ -250,18 +250,17 @@ char   * escaped;
                 }
 
                 if (encl_esc && ftypes[i] == 1) {
-                    // upto 16 quotes in string 
+                    // TODO: upto 16 quotes in string 
                     escaped = malloc(strlen(char_ptr) + 16);
                     size_t p, d = 0;
                     size_t src_len = strlen(char_ptr);
                     for (p = 0; p <= src_len; p++) {
-                        // test is bad: must compare/concat full strings if enclosure is > 1 char
+                        // TODO test is bad: must compare/concat full strings if enclosure is > 1 char
                         if (char_ptr[p] == enclosure[0]) {
-                            escaped[d++] = '#'; 
+                            escaped[d++] = encl_esc[0]; 
                         }
                         escaped[d++] = char_ptr[p]; 
                     }
-                    printf("(copy: @%s@)", escaped);
                 }
 
                 if (ftypes[i] == 1 && !ind_value)
@@ -269,9 +268,14 @@ char   * escaped;
                 else
                   enc = "";
 
+                if (escaped != NULL) {
+                  res_str = escaped;
+                } else {
+                  res_str = char_ptr;
+                }
                 printf( "%s%s%s%s", i ? delimiter : "",
                                     enc,
-                                    ind_value? null_string : char_ptr,
+                                    ind_value? null_string : res_str,
                                     enc);
 
                 if (escaped != NULL) { free(escaped); }
