@@ -27,6 +27,7 @@ original [array-flat][kyte-flat] utility.
     - `sqlfile`: query file name (for saved)
     - `delimiter`: field separator, default "|"
     - `enclosure`: enclosing quotes for string fields, default: none
+    - `encl_esc`: escape char for enclosing quotes inside string fields, default: none
     - `null_string`: null replacement string, default "?"
     - `replace_nl`: newline replacement char, default: keep newlines
     - `share`: if not empty, enable forced cursor sharing for session
