@@ -327,12 +327,9 @@ char * argv[];
       EXEC SQL alter session set cursor_sharing=force;
 
     // :cli_inf
-    if (MOD_INFO)
-      EXEC SQL EXECUTE IMMEDIATE
-        begin 
-          dbms_application_info.set_client_info('UID="test", HOST="test"'); 
-        end; 
-      END-EXEC;
+    if (MOD_INFO) {
+      EXEC SQL EXECUTE begin dbms_application_info.set_client_info('UID="test", HOST="test"'); end; END-EXEC;
+    }
 
     EXEC SQL ALTER SESSION SET NLS_DATE_FORMAT = 'DD.MM.YYYY';
 
