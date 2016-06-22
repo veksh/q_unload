@@ -108,14 +108,14 @@ int i;
         if ( !strncmp( argv[i], "share=", 6 ) )
               FORCE_SHARING = argv[i]+6;
         else
-        if ( !strncmp( argv[i], "cli_info=", 8 ) )
-              CLI_INFO = argv[i]+8;
+        if ( !strncmp( argv[i], "cli_info=", 9 ) )
+              CLI_INFO = argv[i]+9;
         else
-        if ( !strncmp( argv[i], "mod_info=", 8 ) )
-              MOD_INFO = argv[i]+8;
+        if ( !strncmp( argv[i], "mod_info=", 9 ) )
+              MOD_INFO = argv[i]+9;
         else
-        if ( !strncmp( argv[i], "act_info=", 8 ) )
-              ACT_INFO = argv[i]+8;
+        if ( !strncmp( argv[i], "act_info=", 9 ) )
+              ACT_INFO = argv[i]+9;
         else
         {
             print_usage(argv[0]);
@@ -332,16 +332,12 @@ char * argv[];
     if (FORCE_SHARING) 
       EXEC SQL alter session set cursor_sharing = force;
 
-    if (CLI_INFO) {
-      //EXEC SQL CALL dbms_application_info.set_client_info('uid="test", host="test"');
-      printf("*** cli: %s\n", CLI_INFO);
+    if (CLI_INFO) 
       EXEC SQL CALL dbms_application_info.set_client_info(:CLI_INFO);
-    }
 
     if (MOD_INFO) {
       if (!ACT_INFO)
         ACT_INFO = "";
-      printf("*** mod: %s, act: %s\n", MOD_INFO, ACT_INFO);
       EXEC SQL CALL dbms_application_info.set_module(:MOD_INFO, :ACT_INFO);
     }
 
