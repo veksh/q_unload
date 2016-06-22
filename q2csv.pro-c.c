@@ -105,14 +105,12 @@ int i;
     }
     if ( USERID == NULL || (SQLSTMT == NULL && SQLFILE == NULL) )
     {
+        fprintf(stderr, "version: %s\n", VERSION_NUMBER);
         print_usage(argv[0]);
         exit(1);
     }
 }
 
-#include <stdio.h>
-#include <stdlib.h>
- 
 static char * read_file(char * filepath)
 {
   char *buffer;
