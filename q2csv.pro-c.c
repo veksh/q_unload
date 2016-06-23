@@ -145,6 +145,9 @@ static char * read_file(char * filepath)
             fread(buffer, 1, fs, fh);
         }
         fclose(fh);
+    } else {
+      fprintf(stderr,"\nFATAL: cannot access file %s, exiting\n", filepath);
+      exit(1);
     }
     // strcat(buffer, "\n");
     return buffer;
