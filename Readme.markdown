@@ -43,4 +43,3 @@ original [array-flat][kyte-flat] utility.
 # Missed features and todo
 - bind vars
 - date and number format fine-tuning
-- setting dbms_application_info
