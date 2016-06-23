@@ -324,6 +324,9 @@ char * argv[];
 
     process_parms( argc, argv );
 
+    if (SQLFILE)
+      SQLSTMT = read_file(SQLFILE);
+
     vstrcpy( oracleid, USERID );
 
     EXEC SQL WHENEVER SQLERROR DO sqlerror_hard();
@@ -341,10 +344,6 @@ char * argv[];
 
     if (MOD_INFO)
       EXEC SQL CALL dbms_application_info.set_module(:MOD_INFO, :ACT_INFO);
-    }
-
-    if (SQLFILE)
-      SQLSTMT = read_file(SQLFILE);
 
     select_dp = process_1( SQLSTMT, atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE );
     process_2( select_dp , atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE, NULL_STRING, REPLACE_NL, ENCL_ESC );
