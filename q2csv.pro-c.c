@@ -25,7 +25,7 @@ static char * REPLACE_NL = NULL;
 static char * FORCE_SHARING = NULL;
 static char * CLI_INFO = NULL;
 static char * MOD_INFO = NULL;
-static char * ACT_INFO = NULL;
+static char * ACT_INFO = "";
 
 #define vstrcpy( a, b ) \
 (strcpy( a.arr, b ), a.len = strlen( a.arr ), a.arr)
@@ -339,9 +339,7 @@ char * argv[];
     if (CLI_INFO) 
       EXEC SQL CALL dbms_application_info.set_client_info(:CLI_INFO);
 
-    if (MOD_INFO) {
-      if (!ACT_INFO)
-        ACT_INFO = "";
+    if (MOD_INFO)
       EXEC SQL CALL dbms_application_info.set_module(:MOD_INFO, :ACT_INFO);
     }
 
