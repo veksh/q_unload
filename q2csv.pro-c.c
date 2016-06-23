@@ -137,7 +137,7 @@ static char * read_file(char * filepath)
     if ( fh != NULL )
     {
         fseek(fh, 0L, SEEK_END);
-        long fs = ftell(fh);
+        size_t fs = ftell(fh);
         rewind(fh);
         buffer = malloc(fs + 1);
         if ( buffer != NULL )
