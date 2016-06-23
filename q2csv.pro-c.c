@@ -19,9 +19,13 @@ static char * SQLFILE = NULL;
 static char * ARRAY_SIZE = "10";
 static char * DELIMITER = "|";
 static char * ENCLOSURE = "";
+static char * ENCL_ESC = NULL;
 static char * NULL_STRING = "?";
 static char * REPLACE_NL = NULL;
 static char * FORCE_SHARING = NULL;
+static char * CLI_INFO = NULL;
+static char * MOD_INFO = NULL;
+static char * ACT_INFO = "";
 
 #define vstrcpy( a, b ) \
 (strcpy( a.arr, b ), a.len = strlen( a.arr ), a.arr)
@@ -41,7 +45,7 @@ static void die( char * msg )
 static void print_usage( char * progname)
 {
     fprintf( stderr,
-             "usage: %s %s %s %s %s %s %s %s %s\n",
+             "usage: %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
               progname,
              "userid=xxx/xxx",
              "sqlstmt=query",
@@ -49,9 +53,13 @@ static void print_usage( char * progname)
              "arraysize=<NN>",
              "delimiter=x",
              "enclosure=x",
+             "encl_esc=x",
              "null_string=x",
              "replace_nl=x",
-             "share=x");
+             "share=x",
+             "cli_info=x",
+             "mod_info=x",
+             "act_info=x");
 }
 
 /*
@@ -61,7 +69,6 @@ static void print_usage( char * progname)
 */
 
 static int lengths[] = { -1, 0, 45, 0, 0, 0, 0, 0, 2000, 0, 0, 18, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 512, 2000 };
-
 
 static void process_parms( argc, argv )
 int    argc;
@@ -89,6 +96,9 @@ int i;
         if ( !strncmp( argv[i], "enclosure=", 10 ) )
               ENCLOSURE = argv[i]+10;
         else
+        if ( !strncmp( argv[i], "encl_esc=", 9 ) )
+              ENCL_ESC = argv[i]+9;
+        else
         if ( !strncmp( argv[i], "null_string=", 12 ) )
               NULL_STRING = argv[i]+12;
         else
@@ -98,6 +108,15 @@ int i;
         if ( !strncmp( argv[i], "share=", 6 ) )
               FORCE_SHARING = argv[i]+6;
         else
+        if ( !strncmp( argv[i], "cli_info=", 9 ) )
+              CLI_INFO = argv[i]+9;
+        else
+        if ( !strncmp( argv[i], "mod_info=", 9 ) )
+              MOD_INFO = argv[i]+9;
+        else
+        if ( !strncmp( argv[i], "act_info=", 9 ) )
+              ACT_INFO = argv[i]+9;
+        else
         {
             print_usage(argv[0]);
             exit(1);
@@ -105,31 +124,33 @@ int i;
     }
     if ( USERID == NULL || (SQLSTMT == NULL && SQLFILE == NULL) )
     {
+        fprintf(stderr, "version: %s\n", VERSION_NUMBER);
         print_usage(argv[0]);
         exit(1);
     }
 }
 
-#include <stdio.h>
-#include <stdlib.h>
- 
 static char * read_file(char * filepath)
 {
-  char *buffer;
-  FILE *fh = fopen(filepath, "rb");
-  if ( fh != NULL )
-  {
-      fseek(fh, 0L, SEEK_END);
-      long fs = ftell(fh);
-      rewind(fh);
-      buffer = malloc(fs);
-      if ( buffer != NULL ) 
-      {
-          fread(buffer, fs, 1, fh);
-      }
-      fclose(fh);
-  }
-  return buffer;
+    char *buffer;
+    FILE *fh = fopen(filepath, "rb");
+    if ( fh != NULL )
+    {
+        fseek(fh, 0L, SEEK_END);
+        size_t fs = ftell(fh);
+        rewind(fh);
+        buffer = malloc(fs + 1);
+        if ( buffer != NULL )
+        {
+            fread(buffer, 1, fs, fh);
+        }
+        fclose(fh);
+    } else {
+      fprintf(stderr,"\nFATAL: cannot access file %s, exiting\n", filepath);
+      exit(1);
+    }
+    // strcat(buffer, "\n");
+    return buffer;
 }
 
 static void sqlerror_hard()
@@ -205,15 +226,16 @@ int     size = 10;
 }
 
 static void process_2( SQLDA * select_dp, int array_size, char * delimiter, char * enclosure, 
-  char * null_string, char * replace_nl )
+  char * null_string, char * replace_nl, char * encl_esc )
 {
 int    last_fetch_count;
 int    row_count = 0;
 short  ind_value;
-char   * char_ptr;
+char   * field_str;
 int    i,j;
 char   * enc;
 short  * ftypes;
+char   * escaped, * res_str;
 
     // need to set type to 5 ("string") for autoformat; save actual types to enclose only strings
     ftypes = malloc(sizeof(short)*select_dp->F);
@@ -234,14 +256,29 @@ short  * ftypes;
             for (i = 0; i < select_dp->F; i++)
             {
                 ind_value = *(select_dp->I[i]+j);
-                char_ptr  = select_dp->V[i] + (j*select_dp->L[i]);
+                field_str = select_dp->V[i] + (j*select_dp->L[i]);
+                escaped   = NULL;
 
                 if (replace_nl) {
-                  char *pch = strstr(char_ptr, "\n");
+                  char *pch = strstr(field_str, "\n");
                   while(pch != NULL) {
                     strncpy(pch, replace_nl, 1);
-                    pch = strstr(char_ptr, "\n");
+                    pch = strstr(field_str, "\n");
                   }
+                }
+
+                if (encl_esc && ftypes[i] == 1) {
+                    // TODO: artifical limit of 16 quotes in string, too lazy to count 
+                    escaped = malloc(strlen(field_str) + 16);
+                    size_t p, d = 0;
+                    size_t src_len = strlen(field_str);
+                    for (p = 0; p <= src_len; p++) {
+                        // TODO working only for 1-char encl and encl_esc
+                        if (field_str[p] == enclosure[0]) {
+                            escaped[d++] = encl_esc[0]; 
+                        }
+                        escaped[d++] = field_str[p]; 
+                    }
                 }
 
                 if (ftypes[i] == 1 && !ind_value)
@@ -249,10 +286,17 @@ short  * ftypes;
                 else
                   enc = "";
 
+                if (escaped != NULL) {
+                  res_str = escaped;
+                } else {
+                  res_str = field_str;
+                }
                 printf( "%s%s%s%s", i ? delimiter : "",
                                     enc,
-                                    ind_value? null_string : char_ptr,
+                                    ind_value? null_string : res_str,
                                     enc);
+
+                if (escaped != NULL) { free(escaped); }
             }
             row_count++;
             printf( "\n" );
@@ -280,6 +324,9 @@ char * argv[];
 
     process_parms( argc, argv );
 
+    if (SQLFILE)
+      SQLSTMT = read_file(SQLFILE);
+
     vstrcpy( oracleid, USERID );
 
     EXEC SQL WHENEVER SQLERROR DO sqlerror_hard();
@@ -287,16 +334,19 @@ char * argv[];
     EXEC SQL CONNECT :oracleid;
     fprintf(stderr, "Connected to ORACLE\n");
 
+    EXEC SQL alter session set nls_date_format = 'DD.MM.YYYY';
+
     if (FORCE_SHARING) 
-      exec sql alter session set cursor_sharing=force;
+      EXEC SQL alter session set cursor_sharing = force;
 
-    EXEC SQL ALTER SESSION SET NLS_DATE_FORMAT = 'DD.MM.YYYY';
+    if (CLI_INFO) 
+      EXEC SQL CALL dbms_application_info.set_client_info(:CLI_INFO);
 
-    if (SQLFILE)
-      SQLSTMT = read_file(SQLFILE);
+    if (MOD_INFO)
+      EXEC SQL CALL dbms_application_info.set_module(:MOD_INFO, :ACT_INFO);
 
     select_dp = process_1( SQLSTMT, atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE );
-    process_2( select_dp , atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE, NULL_STRING, REPLACE_NL );
+    process_2( select_dp , atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE, NULL_STRING, REPLACE_NL, ENCL_ESC );
 
     EXEC SQL COMMIT WORK RELEASE;
     exit(0);
