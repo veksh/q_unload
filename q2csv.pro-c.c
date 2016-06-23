@@ -132,6 +132,7 @@ int i;
 
 static char * read_file(char * filepath)
 {
+  long read;
   char *buffer;
   FILE *fh = fopen(filepath, "rb");
   if ( fh != NULL )
@@ -139,13 +140,14 @@ static char * read_file(char * filepath)
       fseek(fh, 0L, SEEK_END);
       long fs = ftell(fh);
       rewind(fh);
-      buffer = malloc(fs);
+      buffer = malloc(fs + 1);
       if ( buffer != NULL ) 
       {
-          fread(buffer, fs, 1, fh);
+          read = fread(buffer, 1, fs, fh);
       }
       fclose(fh);
   }
+  // strcat(buffer, "\n");
   return buffer;
 }
 
