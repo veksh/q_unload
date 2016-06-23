@@ -12,8 +12,10 @@ original [array-flat][kyte-flat] utility.
     - null replacement string
     - newline replacement char
     - forced cursor sharing
-- ablity to change fields separator and optionally enclose strings
+- ablity to change fields separator
+- optionally enclosing strings and escaping delimitier inside strings
 - reading query from file
+- setting dbms_application_info for long-running queries
 
 # Usage
 - basic
