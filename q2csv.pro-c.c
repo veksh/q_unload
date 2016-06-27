@@ -281,6 +281,11 @@ char   * escaped, * res_str;
                     }
                 }
 
+                if (ftypes[i] == 187) {
+                  // field_str = "bebebe";
+                  ind_value = 0;
+                }
+
                 if (ftypes[i] == 1 && !ind_value)
                   enc = enclosure;
                 else
@@ -291,6 +296,7 @@ char   * escaped, * res_str;
                 } else {
                   res_str = field_str;
                 }
+
                 printf( "%s%s%s%s", i ? delimiter : "",
                                     enc,
                                     ind_value? null_string : res_str,
