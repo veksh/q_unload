@@ -65,7 +65,10 @@ static void print_usage( char * progname)
 /*
     this array contains a default mapping I am using to constrain the
     lengths of returned columns.  It is mapping, for example, the Oracle
-    NUMBER type (type code = 2) to be 45 characters long in a string.
+    NUMBER type (type code = 2) to be 45 characters long in a string. 
+    see Pro*C/C++ Programmers Guide table 15-2 for a list of types
+    LONG (8) is 2000 bytes etc; missed is type 187, size is explicitly 
+    raised from default 16 to 32 below
 */
 
 static int lengths[] = { -1, 0, 45, 0, 0, 0, 0, 0, 2000, 0, 0, 18, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 512, 2000 };
@@ -210,10 +213,11 @@ int     size = 10;
                  select_dp->L[i]  = lengths[select_dp->T[i]];
             else select_dp->L[i] += 5;
         }
-        else select_dp->L[i] += 5;
-        if (select_dp->T[i] == 187) 
-           select_dp->L[i] = 32;
-
+        else if (select_dp->T[i] == 187) 
+          // make 187 (TIMESTAMP) long enough for NLS_TIMESTAMP_FORMAT='YYYY-MM-DD"T"HH24:MI:SS.FF6'
+          select_dp->L[i] = 32;
+        else
+          select_dp->L[i] += 5;
         select_dp->V[i] = (char *)malloc( select_dp->L[i] * array_size );
 
         for( j = MAX_VNAME_LEN-1;
@@ -281,12 +285,6 @@ char   * escaped, * res_str;
                         }
                         escaped[d++] = field_str[p]; 
                     }
-                }
-
-                if (ftypes[i] == 187) {
-                  // field_str = "bebebe";
-                  ind_value = 0;
-                  printf("length of %d: %d\n", i, select_dp->L[i]);
                 }
 
                 if (ftypes[i] == 1 && !ind_value)
