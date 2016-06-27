@@ -211,6 +211,8 @@ int     size = 10;
             else select_dp->L[i] += 5;
         }
         else select_dp->L[i] += 5;
+        if (select_dp->T[i] == 187) 
+           select_dp->L[i] = 32;
 
         select_dp->V[i] = (char *)malloc( select_dp->L[i] * array_size );
 
@@ -284,6 +286,7 @@ char   * escaped, * res_str;
                 if (ftypes[i] == 187) {
                   // field_str = "bebebe";
                   ind_value = 0;
+                  printf("length of %d: %d\n", i, select_dp->L[i]);
                 }
 
                 if (ftypes[i] == 1 && !ind_value)
