@@ -39,7 +39,11 @@ original [array-flat][kyte-flat] utility.
     - `share`: if not empty, enable forced cursor sharing for session
     - `arraysize`: fetch array size, default 10 records
     - `cli_info`, `mod_info`, `act_info`: client, module and action for `dbms_application_info`
+- to fine-tune date presentation: export env vars like
+
+        export NLS_LANG=AMERICAN_CIS.UTF8
+        export NLS_DATE_FORMAT='DD.MM.RR'
+        export NLS_TIMESTAMP_FORMAT='YYYY-MM-DD"T"HH24:MI:SS.FF6'
 
 # Missed features and todo
 - bind vars
-- date and number format fine-tuning
