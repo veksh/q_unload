@@ -39,6 +39,9 @@ original [array-flat][kyte-flat] utility.
     - `share`: if not empty, enable forced cursor sharing for session
     - `arraysize`: fetch array size, default 10 records
     - `cli_info`, `mod_info`, `act_info`: client, module and action for `dbms_application_info`
+- obscure options, specific for our environment
+    - `pnull_string`: if string field equals hard-coded PRONULL string (currently "<$null4mail_ora$>"),
+      replace its contents with this string (usually "?") to facilitate Progress replication
 - to fine-tune date presentation: export env vars like
 
         export NLS_LANG=AMERICAN_CIS.UTF8

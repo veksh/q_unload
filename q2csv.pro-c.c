@@ -26,6 +26,9 @@ static char * FORCE_SHARING = NULL;
 static char * CLI_INFO = NULL;
 static char * MOD_INFO = NULL;
 static char * ACT_INFO = "";
+static char * PNULL_STRING = NULL;
+
+#define PRONULL "<$null4mail_ora$>"
 
 #define vstrcpy( a, b ) \
 (strcpy( a.arr, b ), a.len = strlen( a.arr ), a.arr)
@@ -45,7 +48,7 @@ static void die( char * msg )
 static void print_usage( char * progname)
 {
     fprintf( stderr,
-             "usage: %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
+             "usage: %s %s %s %s %s %s %s %s %s %s %s %s %s %s, %s\n",
               progname,
              "userid=xxx/xxx",
              "sqlstmt=query",
@@ -59,7 +62,8 @@ static void print_usage( char * progname)
              "share=x",
              "cli_info=x",
              "mod_info=x",
-             "act_info=x");
+             "act_info=x",
+             "pnull_string=x");
 }
 
 /*
@@ -119,6 +123,9 @@ int i;
         else
         if ( !strncmp( argv[i], "act_info=", 9 ) )
               ACT_INFO = argv[i]+9;
+        else
+        if ( !strncmp( argv[i], "pnull_string=", 13 ) )
+              PNULL_STRING = argv[i]+13;
         else
         {
             print_usage(argv[0]);
@@ -232,7 +239,7 @@ int     size = 10;
 }
 
 static void process_2( SQLDA * select_dp, int array_size, char * delimiter, char * enclosure, 
-  char * null_string, char * replace_nl, char * encl_esc )
+  char * null_string, char * replace_nl, char * encl_esc, char * replace_pronull )
 {
 int    last_fetch_count;
 int    row_count = 0;
@@ -273,10 +280,9 @@ char   * escaped, * res_str;
                   }
                 }
 
-                if (ftypes[i] == 1) {
-                   if (! strcmp(field_str, "<$null4mail_ora$>")) {
-                     // printf("bindo\n");
-                     field_str = "?";   
+                if (replace_pronull && ftypes[i] == 1) {
+                   if (! strcmp(field_str, PRONULL)) {
+                     field_str = replace_pronull;   
                    }
                 }
                  
@@ -360,7 +366,7 @@ char * argv[];
       EXEC SQL CALL dbms_application_info.set_module(:MOD_INFO, :ACT_INFO);
 
     select_dp = process_1( SQLSTMT, atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE );
-    process_2( select_dp , atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE, NULL_STRING, REPLACE_NL, ENCL_ESC );
+    process_2( select_dp , atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE, NULL_STRING, REPLACE_NL, ENCL_ESC, PNULL_STRING );
 
     EXEC SQL COMMIT WORK RELEASE;
     exit(0);
