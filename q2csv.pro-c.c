@@ -273,6 +273,13 @@ char   * escaped, * res_str;
                   }
                 }
 
+                if (ftypes[i] == 1) {
+                   if (! strcmp(field_str, "<$null4mail_ora$>")) {
+                     // printf("bindo\n");
+                     field_str = "?";   
+                   }
+                }
+                 
                 if (encl_esc && ftypes[i] == 1) {
                     // TODO: artifical limit of 16 quotes in string, too lazy to count 
                     escaped = malloc(strlen(field_str) + 16);
