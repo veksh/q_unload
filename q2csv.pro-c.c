@@ -244,7 +244,7 @@ int     size = 10;
 }
 
 static void process_2( SQLDA * select_dp, int array_size, char * delimiter, char * enclosure, 
-  char * replace_null, char * replace_nl, char * encl_esc, char * replace_pronull )
+  char * replace_null, char * replace_nl, char * encl_esc, char * null_string, char * replace_pronull )
 {
 int    last_fetch_count;
 int    row_count = 0;
@@ -371,7 +371,7 @@ char * argv[];
       EXEC SQL CALL dbms_application_info.set_module(:MOD_INFO, :ACT_INFO);
 
     select_dp = process_1( SQLSTMT, atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE );
-    process_2( select_dp , atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE, REPLACE_NULL, REPLACE_NL, ENCL_ESC, PNULL_STRING );
+    process_2( select_dp , atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE, REPLACE_NULL, REPLACE_NL, ENCL_ESC, NULL_STRING, PNULL_STRING );
 
     EXEC SQL COMMIT WORK RELEASE;
     exit(0);
