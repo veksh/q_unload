@@ -319,6 +319,9 @@ char   * escaped, * res_str;
                 // replace nulls with proper replacement
                 if (ind_value) {
                   res_str = replace_null;
+                  if (ftypes[i] == 1 && null_string ) {
+                    res_str = null_string;
+                  }
                 } else {
                   // enclose strings
                   if (ftypes[i] == 1) {
