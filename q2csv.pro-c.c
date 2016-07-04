@@ -277,6 +277,7 @@ char   * escaped, * res_str;
                 field_str = select_dp->V[i] + (j*select_dp->L[i]);
                 escaped   = NULL;
 
+                // relace newlines (in all fields, really need to check only strings
                 if (replace_nl) {
                   char *pch = strstr(field_str, "\n");
                   while(pch != NULL) {
@@ -285,12 +286,14 @@ char   * escaped, * res_str;
                   }
                 }
 
+                // replace special progress nulls in strings
                 if (replace_pronull && ftypes[i] == 1) {
                    if (! strcmp(field_str, PRONULL)) {
                      field_str = replace_pronull;   
                    }
                 }
                  
+                // change quotas to escaped in strings
                 if (encl_esc && ftypes[i] == 1) {
                     // TODO: artifical limit of 16 quotes in string, too lazy to count 
                     escaped = malloc(strlen(field_str) + 16);
@@ -305,20 +308,27 @@ char   * escaped, * res_str;
                     }
                 }
 
-                if (ftypes[i] == 1 && !ind_value)
-                  enc = enclosure;
-                else
-                  enc = "";
-
+                // use escaped string 
                 if (escaped != NULL) {
                   res_str = escaped;
                 } else {
                   res_str = field_str;
                 }
 
+                enc = "";
+                // replace nulls with proper replacement
+                if (ind_value) {
+                  res_str = replace_null;
+                } else {
+                  // enclose strings
+                  if (ftypes[i] == 1) {
+                    enc = enclosure;
+                  }
+                }  
+
                 printf( "%s%s%s%s", i ? delimiter : "",
                                     enc,
-                                    ind_value? replace_null : res_str,
+                                    res_str,
                                     enc);
 
                 if (escaped != NULL) { free(escaped); }
