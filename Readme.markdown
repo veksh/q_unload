@@ -34,7 +34,8 @@ original [array-flat][kyte-flat] utility.
     - `delimiter`: field separator, default "|"
     - `enclosure`: enclosing quotes for string fields, default: none
     - `encl_esc`: escape char for enclosing quotes inside string fields, default: none
-    - `null_string`: null replacement string, default "?"
+    - `replace_null`: null replacement string, default "?"
+    - `null_string`: empty (null) string replacement, default "" (empty)
     - `replace_nl`: newline replacement char, default: keep newlines
     - `share`: if not empty, enable forced cursor sharing for session
     - `arraysize`: fetch array size, default 10 records
