@@ -20,12 +20,16 @@ static char * ARRAY_SIZE = "10";
 static char * DELIMITER = "|";
 static char * ENCLOSURE = "";
 static char * ENCL_ESC = NULL;
-static char * NULL_STRING = "?";
+static char * REPLACE_NULL = "?";
 static char * REPLACE_NL = NULL;
 static char * FORCE_SHARING = NULL;
 static char * CLI_INFO = NULL;
 static char * MOD_INFO = NULL;
 static char * ACT_INFO = "";
+static char * NULL_STRING = "";
+static char * PNULL_STRING = NULL;
+
+#define PRONULL "<$null4mail_ora$>"
 
 #define vstrcpy( a, b ) \
 (strcpy( a.arr, b ), a.len = strlen( a.arr ), a.arr)
@@ -45,7 +49,7 @@ static void die( char * msg )
 static void print_usage( char * progname)
 {
     fprintf( stderr,
-             "usage: %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
+             "usage: %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
               progname,
              "userid=xxx/xxx",
              "sqlstmt=query",
@@ -54,18 +58,23 @@ static void print_usage( char * progname)
              "delimiter=x",
              "enclosure=x",
              "encl_esc=x",
-             "null_string=x",
+             "replace_null=x",
              "replace_nl=x",
              "share=x",
              "cli_info=x",
              "mod_info=x",
-             "act_info=x");
+             "act_info=x",
+             "null_string=x",
+             "pnull_string=x");
 }
 
 /*
     this array contains a default mapping I am using to constrain the
     lengths of returned columns.  It is mapping, for example, the Oracle
-    NUMBER type (type code = 2) to be 45 characters long in a string.
+    NUMBER type (type code = 2) to be 45 characters long in a string. 
+    see Pro*C/C++ Programmers Guide table 15-2 for a list of types
+    LONG (8) is 2000 bytes etc; missed is type 187, size is explicitly 
+    raised from default 16 to 32 below
 */
 
 static int lengths[] = { -1, 0, 45, 0, 0, 0, 0, 0, 2000, 0, 0, 18, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 512, 2000 };
@@ -99,8 +108,8 @@ int i;
         if ( !strncmp( argv[i], "encl_esc=", 9 ) )
               ENCL_ESC = argv[i]+9;
         else
-        if ( !strncmp( argv[i], "null_string=", 12 ) )
-              NULL_STRING = argv[i]+12;
+        if ( !strncmp( argv[i], "replace_null=", 13 ) )
+              REPLACE_NULL = argv[i]+13;
         else
         if ( !strncmp( argv[i], "replace_nl=", 11 ) )
               REPLACE_NL = argv[i]+11;
@@ -116,6 +125,12 @@ int i;
         else
         if ( !strncmp( argv[i], "act_info=", 9 ) )
               ACT_INFO = argv[i]+9;
+        else
+        if ( !strncmp( argv[i], "null_string=", 12 ) )
+              NULL_STRING = argv[i]+12;
+        else
+        if ( !strncmp( argv[i], "pnull_string=", 13 ) )
+              PNULL_STRING = argv[i]+13;
         else
         {
             print_usage(argv[0]);
@@ -210,8 +225,11 @@ int     size = 10;
                  select_dp->L[i]  = lengths[select_dp->T[i]];
             else select_dp->L[i] += 5;
         }
-        else select_dp->L[i] += 5;
-
+        else if (select_dp->T[i] == 187) 
+          // make 187 (TIMESTAMP) long enough for NLS_TIMESTAMP_FORMAT='YYYY-MM-DD"T"HH24:MI:SS.FF6'
+          select_dp->L[i] = 32;
+        else
+          select_dp->L[i] += 5;
         select_dp->V[i] = (char *)malloc( select_dp->L[i] * array_size );
 
         for( j = MAX_VNAME_LEN-1;
@@ -226,7 +244,7 @@ int     size = 10;
 }
 
 static void process_2( SQLDA * select_dp, int array_size, char * delimiter, char * enclosure, 
-  char * null_string, char * replace_nl, char * encl_esc )
+  char * replace_null, char * replace_nl, char * encl_esc, char * null_string, char * replace_pronull )
 {
 int    last_fetch_count;
 int    row_count = 0;
@@ -236,6 +254,7 @@ int    i,j;
 char   * enc;
 short  * ftypes;
 char   * escaped, * res_str;
+short  skip_enc;
 
     // need to set type to 5 ("string") for autoformat; save actual types to enclose only strings
     ftypes = malloc(sizeof(short)*select_dp->F);
@@ -258,7 +277,9 @@ char   * escaped, * res_str;
                 ind_value = *(select_dp->I[i]+j);
                 field_str = select_dp->V[i] + (j*select_dp->L[i]);
                 escaped   = NULL;
+                skip_enc  = 0;
 
+                // relace newlines (in all fields, really need to check only strings)
                 if (replace_nl) {
                   char *pch = strstr(field_str, "\n");
                   while(pch != NULL) {
@@ -267,6 +288,15 @@ char   * escaped, * res_str;
                   }
                 }
 
+                // replace special progress nulls in strings, mark as done
+                if (replace_pronull && ftypes[i] == 1) {
+                   if (! strcmp(field_str, PRONULL)) {
+                     field_str = replace_pronull;   
+                     skip_enc = 1;
+                   }
+                }
+                 
+                // change quotas to escaped in strings
                 if (encl_esc && ftypes[i] == 1) {
                     // TODO: artifical limit of 16 quotes in string, too lazy to count 
                     escaped = malloc(strlen(field_str) + 16);
@@ -281,19 +311,32 @@ char   * escaped, * res_str;
                     }
                 }
 
-                if (ftypes[i] == 1 && !ind_value)
-                  enc = enclosure;
-                else
-                  enc = "";
-
+                // use escaped string 
                 if (escaped != NULL) {
                   res_str = escaped;
                 } else {
                   res_str = field_str;
                 }
+
+                // replace nulls with proper replacement
+                if (ind_value) {
+                  res_str = replace_null;
+                  if (ftypes[i] == 1 && null_string ) {
+                    res_str = null_string;
+                  }
+                }
+
+                enc = "";
+                // enclose strings, skip sepcial cases
+                if (!ind_value) {
+                  if (ftypes[i] == 1 && !skip_enc) {
+                    enc = enclosure;
+                  }
+                }
+
                 printf( "%s%s%s%s", i ? delimiter : "",
                                     enc,
-                                    ind_value? null_string : res_str,
+                                    res_str,
                                     enc);
 
                 if (escaped != NULL) { free(escaped); }
@@ -346,7 +389,7 @@ char * argv[];
       EXEC SQL CALL dbms_application_info.set_module(:MOD_INFO, :ACT_INFO);
 
     select_dp = process_1( SQLSTMT, atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE );
-    process_2( select_dp , atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE, NULL_STRING, REPLACE_NL, ENCL_ESC );
+    process_2( select_dp , atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE, REPLACE_NULL, REPLACE_NL, ENCL_ESC, NULL_STRING, PNULL_STRING );
 
     EXEC SQL COMMIT WORK RELEASE;
     exit(0);

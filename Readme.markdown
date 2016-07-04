@@ -12,8 +12,10 @@ original [array-flat][kyte-flat] utility.
     - null replacement string
     - newline replacement char
     - forced cursor sharing
-- ablity to change fields separator and optionally enclose strings
+- ablity to change fields separator
+- optionally enclosing strings and escaping delimitier inside strings
 - reading query from file
+- setting dbms_application_info for long-running queries
 
 # Usage
 - basic
@@ -32,13 +34,20 @@ original [array-flat][kyte-flat] utility.
     - `delimiter`: field separator, default "|"
     - `enclosure`: enclosing quotes for string fields, default: none
     - `encl_esc`: escape char for enclosing quotes inside string fields, default: none
-    - `null_string`: null replacement string, default "?"
+    - `replace_null`: null replacement string, default "?"
+    - `null_string`: empty (null) string replacement, default "" (empty)
     - `replace_nl`: newline replacement char, default: keep newlines
     - `share`: if not empty, enable forced cursor sharing for session
     - `arraysize`: fetch array size, default 10 records
     - `cli_info`, `mod_info`, `act_info`: client, module and action for `dbms_application_info`
+- obscure options, specific for our environment
+    - `pnull_string`: if string field equals hard-coded PRONULL string (currently "<$null4mail_ora$>"),
+      replace its contents with this string (usually "?") to facilitate Progress replication
+- to fine-tune date presentation: export env vars like
+
+        export NLS_LANG=AMERICAN_CIS.UTF8
+        export NLS_DATE_FORMAT='DD.MM.RR'
+        export NLS_TIMESTAMP_FORMAT='YYYY-MM-DD"T"HH24:MI:SS.FF6'
 
 # Missed features and todo
 - bind vars
-- date and number format fine-tuning
-- setting dbms_application_info
