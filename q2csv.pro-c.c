@@ -20,12 +20,13 @@ static char * ARRAY_SIZE = "10";
 static char * DELIMITER = "|";
 static char * ENCLOSURE = "";
 static char * ENCL_ESC = NULL;
-static char * NULL_STRING = "?";
+static char * REPLACE_NULL = "?";
 static char * REPLACE_NL = NULL;
 static char * FORCE_SHARING = NULL;
 static char * CLI_INFO = NULL;
 static char * MOD_INFO = NULL;
 static char * ACT_INFO = "";
+static char * NULL_STRING = "";
 static char * PNULL_STRING = NULL;
 
 #define PRONULL "<$null4mail_ora$>"
@@ -48,7 +49,7 @@ static void die( char * msg )
 static void print_usage( char * progname)
 {
     fprintf( stderr,
-             "usage: %s %s %s %s %s %s %s %s %s %s %s %s %s %s, %s\n",
+             "usage: %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
               progname,
              "userid=xxx/xxx",
              "sqlstmt=query",
@@ -57,12 +58,13 @@ static void print_usage( char * progname)
              "delimiter=x",
              "enclosure=x",
              "encl_esc=x",
-             "null_string=x",
+             "replace_null=x",
              "replace_nl=x",
              "share=x",
              "cli_info=x",
              "mod_info=x",
              "act_info=x",
+             "null_string=x",
              "pnull_string=x");
 }
 
@@ -106,8 +108,8 @@ int i;
         if ( !strncmp( argv[i], "encl_esc=", 9 ) )
               ENCL_ESC = argv[i]+9;
         else
-        if ( !strncmp( argv[i], "null_string=", 12 ) )
-              NULL_STRING = argv[i]+12;
+        if ( !strncmp( argv[i], "replace_null=", 13 ) )
+              REPLACE_NULL = argv[i]+13;
         else
         if ( !strncmp( argv[i], "replace_nl=", 11 ) )
               REPLACE_NL = argv[i]+11;
@@ -123,6 +125,9 @@ int i;
         else
         if ( !strncmp( argv[i], "act_info=", 9 ) )
               ACT_INFO = argv[i]+9;
+        else
+        if ( !strncmp( argv[i], "null_string=", 12 ) )
+              NULL_STRING = argv[i]+12;
         else
         if ( !strncmp( argv[i], "pnull_string=", 13 ) )
               PNULL_STRING = argv[i]+13;
@@ -239,7 +244,7 @@ int     size = 10;
 }
 
 static void process_2( SQLDA * select_dp, int array_size, char * delimiter, char * enclosure, 
-  char * null_string, char * replace_nl, char * encl_esc, char * replace_pronull )
+  char * replace_null, char * replace_nl, char * encl_esc, char * replace_pronull )
 {
 int    last_fetch_count;
 int    row_count = 0;
@@ -313,7 +318,7 @@ char   * escaped, * res_str;
 
                 printf( "%s%s%s%s", i ? delimiter : "",
                                     enc,
-                                    ind_value? null_string : res_str,
+                                    ind_value? replace_null : res_str,
                                     enc);
 
                 if (escaped != NULL) { free(escaped); }
@@ -366,7 +371,7 @@ char * argv[];
       EXEC SQL CALL dbms_application_info.set_module(:MOD_INFO, :ACT_INFO);
 
     select_dp = process_1( SQLSTMT, atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE );
-    process_2( select_dp , atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE, NULL_STRING, REPLACE_NL, ENCL_ESC, PNULL_STRING );
+    process_2( select_dp , atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE, REPLACE_NULL, REPLACE_NL, ENCL_ESC, PNULL_STRING );
 
     EXEC SQL COMMIT WORK RELEASE;
     exit(0);
