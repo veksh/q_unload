@@ -254,6 +254,7 @@ int    i,j;
 char   * enc;
 short  * ftypes;
 char   * escaped, * res_str;
+short  skip_enc;
 
     // need to set type to 5 ("string") for autoformat; save actual types to enclose only strings
     ftypes = malloc(sizeof(short)*select_dp->F);
@@ -276,8 +277,9 @@ char   * escaped, * res_str;
                 ind_value = *(select_dp->I[i]+j);
                 field_str = select_dp->V[i] + (j*select_dp->L[i]);
                 escaped   = NULL;
+                skip_enc  = 0;
 
-                // relace newlines (in all fields, really need to check only strings
+                // relace newlines (in all fields, really need to check only strings)
                 if (replace_nl) {
                   char *pch = strstr(field_str, "\n");
                   while(pch != NULL) {
@@ -286,10 +288,11 @@ char   * escaped, * res_str;
                   }
                 }
 
-                // replace special progress nulls in strings
+                // replace special progress nulls in strings, mark as done
                 if (replace_pronull && ftypes[i] == 1) {
                    if (! strcmp(field_str, PRONULL)) {
                      field_str = replace_pronull;   
+                     skip_enc = 1;
                    }
                 }
                  
@@ -326,7 +329,7 @@ char   * escaped, * res_str;
                 enc = "";
                 // enclose strings, skip sepcial cases
                 if (!ind_value) {
-                  if (ftypes[i] == 1) {
+                  if (ftypes[i] == 1 && !skip_enc) {
                     enc = enclosure;
                   }
                 }
