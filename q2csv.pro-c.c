@@ -315,19 +315,21 @@ char   * escaped, * res_str;
                   res_str = field_str;
                 }
 
-                enc = "";
                 // replace nulls with proper replacement
                 if (ind_value) {
                   res_str = replace_null;
                   if (ftypes[i] == 1 && null_string ) {
                     res_str = null_string;
                   }
-                } else {
-                  // enclose strings
+                }
+
+                enc = "";
+                // enclose strings, skip sepcial cases
+                if (!ind_value) {
                   if (ftypes[i] == 1) {
                     enc = enclosure;
                   }
-                }  
+                }
 
                 printf( "%s%s%s%s", i ? delimiter : "",
                                     enc,
