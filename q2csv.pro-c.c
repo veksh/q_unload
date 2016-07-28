@@ -12,6 +12,9 @@
 
 #define MAX_VNAME_LEN 30
 #define MAX_INAME_LEN 30
+#define MAX_NUM_LEN 45
+#define MAX_LONG_LEN 4000
+#define MAX_QUOTES 100
 
 static char * USERID = NULL;
 static char * SQLSTMT = NULL;
@@ -77,7 +80,7 @@ static void print_usage( char * progname)
     raised from default 16 to 32 below
 */
 
-static int lengths[] = { -1, 0, 45, 0, 0, 0, 0, 0, 2000, 0, 0, 18, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 512, 2000 };
+static int lengths[] = { -1, 0, MAX_NUM_LEN, 0, 0, 0, 0, 0, MAX_LONG_LEN, 0, 0, 18, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 512, 2000 };
 
 static void process_parms( argc, argv )
 int    argc;
@@ -298,8 +301,8 @@ short  skip_enc;
                  
                 // change quotas to escaped in strings
                 if (encl_esc && ftypes[i] == 1) {
-                    // TODO: artifical limit of 16 quotes in string, too lazy to count 
-                    escaped = malloc(strlen(field_str) + 16);
+                    // TODO: artifical limit of quotes in string, too lazy to count 
+                    escaped = malloc(strlen(field_str) + MAX_QUOTES);
                     size_t p, d = 0;
                     size_t src_len = strlen(field_str);
                     for (p = 0; p <= src_len; p++) {
