@@ -189,8 +189,6 @@ static SQLDA * process_1(char * sqlstmt, int array_size, char * delimiter, char 
 SQLDA * select_dp;
 int     i, j;
 int     null_ok;
-int     precision;
-int     scale;
 int     size = 10;
 
     fprintf( stderr, "Unloading '%s'\n", sqlstmt );
