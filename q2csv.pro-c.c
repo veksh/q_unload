@@ -240,7 +240,7 @@ int     size = 10;
         for( j = MAX_VNAME_LEN-1;
              j > 0 && select_dp->S[i][j] == ' ';
              j--);
-        fprintf (stderr, "%s%.*s", i ? "," : "", j+1, select_dp->S[i], select_dp->T[i]);
+      fprintf (stderr, "%s%.*s", i ? "," : "", j+1, select_dp->S[i]);
     }
     fprintf( stderr, "\n" );
 
