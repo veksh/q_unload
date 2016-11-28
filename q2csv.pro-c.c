@@ -32,6 +32,8 @@ static char * ACT_INFO = "";
 static char * NULL_STRING = "";
 static char * PNULL_STRING = NULL;
 
+/* call gcc with -DDEBUG or define DEBUG 1 */
+
 #define PRONULL "<$null4mail_ora$>"
 
 #define vstrcpy( a, b ) \
@@ -281,6 +283,9 @@ short  skip_enc;
                 field_str = select_dp->V[i] + (j*select_dp->L[i]);
                 escaped   = NULL;
                 skip_enc  = 0;
+                #ifdef DEBUG
+                printf("DEBUG: \n%s\n", field_str);
+                #endif
 
                 // relace newlines (in all fields, really need to check only strings)
                 if (replace_nl) {
