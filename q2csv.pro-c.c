@@ -282,7 +282,7 @@ short  skip_enc;
                 escaped   = NULL;
                 skip_enc  = 0;
                 #ifdef DEBUG
-                printf("DEBUG: \n%s\n", field_str);
+                printf("\n# DEBUG: orig field_str: %s\n", field_str);
                 #endif
 
                 // relace newlines (in all fields, really need to check only strings)
@@ -292,6 +292,9 @@ short  skip_enc;
                     strncpy(pch, replace_nl, 1);
                     pch = strstr(field_str, "\n");
                   }
+                  #ifdef DEBUG
+                  printf("\n# DEBUG: ... replace_nl: %s\n", field_str);
+                  #endif
                 }
 
                 // replace special progress nulls in strings, mark as done
@@ -300,6 +303,9 @@ short  skip_enc;
                      field_str = replace_pronull;   
                      skip_enc = 1;
                    }
+                  #ifdef DEBUG
+                  printf("\n# DEBUG: ... replace_pn: %s\n", field_str);
+                  #endif
                 }
                  
                 // change quotas to escaped in strings
@@ -315,6 +321,9 @@ short  skip_enc;
                         }
                         escaped[d++] = field_str[p]; 
                     }
+                  #ifdef DEBUG
+                  printf("\n# DEBUG: ...    escaped: %s\n", escaped);
+                  #endif
                 }
 
                 // use escaped string 
@@ -323,6 +332,10 @@ short  skip_enc;
                 } else {
                   res_str = field_str;
                 }
+                #ifdef DEBUG
+                printf("\n# DEBUG: ...    res_str: %s\n", res_str);
+                #endif
+
 
                 // replace nulls with proper replacement
                 if (ind_value) {
@@ -330,6 +343,9 @@ short  skip_enc;
                   if (ftypes[i] == 1 && null_string ) {
                     res_str = null_string;
                   }
+                  #ifdef DEBUG
+                  printf("\n# DEBUG: ...  ind_value: %s\n", escaped);
+                  #endif
                 }
 
                 enc = "";
