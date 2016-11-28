@@ -226,7 +226,9 @@ int     size = 10;
         {
             if ( lengths[select_dp->T[i]] )
                  select_dp->L[i]  = lengths[select_dp->T[i]];
-            else select_dp->L[i] += 5;
+            else
+              // make strings twice as large to prevent truncation with NLS_LANG=X.UTF-8
+              select_dp->L[i] *= 2;
         }
         else if (select_dp->T[i] == 187) 
           // make 187 (TIMESTAMP) long enough for NLS_TIMESTAMP_FORMAT='YYYY-MM-DD"T"HH24:MI:SS.FF6'
@@ -238,7 +240,11 @@ int     size = 10;
         for( j = MAX_VNAME_LEN-1;
              j > 0 && select_dp->S[i][j] == ' ';
              j--);
-      fprintf (stderr, "%s%.*s", i ? "," : "", j+1, select_dp->S[i]);
+        #ifdef DEBUG 
+        fprintf (stderr, "%s%.*s(%d)", i ? "," : "", j+1, select_dp->S[i],select_dp->L[i]);
+        #else
+        fprintf (stderr, "%s%.*s", i ? "," : "", j+1, select_dp->S[i]);
+        #endif
     }
     fprintf( stderr, "\n" );
 
