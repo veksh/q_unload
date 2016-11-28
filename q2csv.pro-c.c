@@ -336,15 +336,17 @@ short  skip_enc;
                 printf("\n# DEBUG: ...    res_str: %s\n", res_str);
                 #endif
 
-
                 // replace nulls with proper replacement
-                if (ind_value) {
+                // https://docs.oracle.com/cd/B10501_01/appdev.920/a97269/pc_15ody.htm#4784
+                // ind_value = -1 means null, 0 not null, positive: truncated
+                if (ind_value == -1) {
                   res_str = replace_null;
                   if (ftypes[i] == 1 && null_string ) {
                     res_str = null_string;
                   }
                   #ifdef DEBUG
-                  printf("\n# DEBUG: ...  ind_value: %s\n", escaped);
+                  printf("\n# DEBUG: ...  ind_value: %d\n", ind_value);
+                  printf("\n# DEBUG: ...  repl_null: %s\n", res_str);
                   #endif
                 }
 
