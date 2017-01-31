@@ -13,7 +13,7 @@
 #define MAX_VNAME_LEN 30
 #define MAX_INAME_LEN 30
 #define MAX_NUM_LEN 45
-#define MAX_LONG_LEN 8192
+#define MAX_LONG_LEN 16384
 #define MAX_QUOTES 100
 
 static char * USERID = NULL;
