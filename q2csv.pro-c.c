@@ -13,7 +13,7 @@
 #define MAX_VNAME_LEN 30
 #define MAX_INAME_LEN 30
 #define MAX_NUM_LEN 45
-#define MAX_LONG_LEN 4000
+#define MAX_LONG_LEN 8192
 #define MAX_QUOTES 100
 
 static char * USERID = NULL;
@@ -78,8 +78,9 @@ static void print_usage( char * progname)
     lengths of returned columns.  It is mapping, for example, the Oracle
     NUMBER type (type code = 2) to be 45 characters long in a string. 
     see Pro*C/C++ Programmers Guide table 15-2 for a list of types
-    LONG (8) is 2000 bytes etc; missed is type 187, size is explicitly 
-    raised from default 16 to 32 below
+    LONG (8) is 2000 bytes etc; missed are
+    - type 187 (TIMESTAMP), size is explicitly raised from default 16 to 32 below
+    - type 112 (CLOB): size set to MAX_LONG_LEN
 */
 
 static int lengths[] = { -1, 0, MAX_NUM_LEN, 0, 0, 0, 0, 0, MAX_LONG_LEN, 0, 0, 18, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 512, 2000 };
@@ -233,6 +234,9 @@ int     size = 10;
         else if (select_dp->T[i] == 187) 
           // make 187 (TIMESTAMP) long enough for NLS_TIMESTAMP_FORMAT='YYYY-MM-DD"T"HH24:MI:SS.FF6'
           select_dp->L[i] = 32;
+        else if (select_dp->T[i] == 112)
+          // make 112 (CLOB) as long as LONG :)
+          select_dp->L[i] = MAX_LONG_LEN;
         else
           select_dp->L[i] += 5;
         select_dp->V[i] = (char *)malloc( select_dp->L[i] * array_size );
@@ -271,6 +275,9 @@ short  skip_enc;
     {
         ftypes[i] = select_dp->T[i];
         select_dp->T[i] = 5;
+        #ifdef DEBUG
+        printf("\n# DEBUG: orig type of field %d is %d\n", i, ftypes[i]);
+        #endif
     }
 
     for ( last_fetch_count = 0;
