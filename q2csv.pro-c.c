@@ -78,9 +78,10 @@ static void print_usage( char * progname)
     lengths of returned columns.  It is mapping, for example, the Oracle
     NUMBER type (type code = 2) to be 45 characters long in a string. 
     see Pro*C/C++ Programmers Guide table 15-2 for a list of types
-    LONG (8) is 2000 bytes etc; missed are
+    LONG (8) is MAX_LONG_LEN bytes etc; missed are
     - type 187 (TIMESTAMP), size is explicitly raised from default 16 to 32 below
     - type 112 (CLOB): size set to MAX_LONG_LEN
+    lengths are in bytes not chars, so unicode strings are twice as long
 */
 
 static int lengths[] = { -1, 0, MAX_NUM_LEN, 0, 0, 0, 0, 0, MAX_LONG_LEN, 0, 0, 18, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 512, 2000 };
@@ -268,6 +269,7 @@ char   * enc;
 short  * ftypes;
 char   * escaped, * res_str;
 short  skip_enc;
+int    is_string = 1;
 
     // need to set type to 5 ("string") for autoformat; save actual types to enclose only strings
     ftypes = malloc(sizeof(short)*select_dp->F);
@@ -298,6 +300,11 @@ short  skip_enc;
                 printf("\n# DEBUG: orig field_str: %s\n", field_str);
                 #endif
 
+                if (ftypes[i] == 1 || ftypes[i] == 112) 
+                  is_string = 1;
+                else
+                  is_string = 0;
+
                 // relace newlines (in all fields, really need to check only strings)
                 if (replace_nl) {
                   char *pch = strstr(field_str, "\n");
@@ -311,7 +318,7 @@ short  skip_enc;
                 }
 
                 // replace special progress nulls in strings, mark as done
-                if (replace_pronull && ftypes[i] == 1) {
+                if (replace_pronull && is_string) {
                    if (! strcmp(field_str, PRONULL)) {
                      field_str = replace_pronull;   
                      skip_enc = 1;
@@ -322,7 +329,7 @@ short  skip_enc;
                 }
                  
                 // change quotas to escaped in strings
-                if (encl_esc && ftypes[i] == 1) {
+                if (encl_esc && is_string) {
                     // TODO: artifical limit of quotes in string, too lazy to count 
                     escaped = malloc(strlen(field_str) + MAX_QUOTES);
                     size_t p, d = 0;
@@ -354,7 +361,7 @@ short  skip_enc;
                 // ind_value = -1 means null, 0 not null, positive: truncated
                 if (ind_value == -1) {
                   res_str = replace_null;
-                  if (ftypes[i] == 1 && null_string ) {
+                  if (is_string && null_string ) {
                     res_str = null_string;
                   }
                   #ifdef DEBUG
@@ -364,9 +371,9 @@ short  skip_enc;
                 }
 
                 enc = "";
-                // enclose strings, skip sepcial cases
+                // enclose strings, skip special cases
                 if (!ind_value) {
-                  if (ftypes[i] == 1 && !skip_enc) {
+                  if (is_string && !skip_enc) {
                     enc = enclosure;
                   }
                 }
