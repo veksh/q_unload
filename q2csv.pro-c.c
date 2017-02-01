@@ -13,7 +13,9 @@
 #define MAX_VNAME_LEN 30
 #define MAX_INAME_LEN 30
 #define MAX_NUM_LEN 45
-#define MAX_LONG_LEN 16384
+/* 268435456 = 1024*1024*256 or 256M is max ok for sybil with arraysize=2 
+   67108864 = 64M is reasonably large, RSS is about 300M for arraysize=2 (1 is slower) */
+#define MAX_LONG_LEN 268435456
 #define MAX_QUOTES 100
 
 static char * USERID = NULL;
