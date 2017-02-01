@@ -13,7 +13,11 @@
 #define MAX_VNAME_LEN 30
 #define MAX_INAME_LEN 30
 #define MAX_NUM_LEN 45
-#define MAX_LONG_LEN 16384
+/* 268435456 = 1024*1024*256 or 256M is max ok for sybil with arraysize=2 
+   67108864 = 64M is reasonably large, RSS is about 300M for arraysize=2 (1 is slower) 
+   default is 65K for now
+*/
+#define MAX_LONG_LEN 65536
 #define MAX_QUOTES 100
 
 static char * USERID = NULL;
@@ -31,6 +35,7 @@ static char * MOD_INFO = NULL;
 static char * ACT_INFO = "";
 static char * NULL_STRING = "";
 static char * PNULL_STRING = NULL;
+static char * MAX_CLOB_LEN = "MAX_LONG_LEN";
 
 /* call gcc with -DDEBUG or define DEBUG 1 */
 
@@ -54,7 +59,7 @@ static void die( char * msg )
 static void print_usage( char * progname)
 {
     fprintf( stderr,
-             "usage: %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
+             "usage: %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
               progname,
              "userid=xxx/xxx",
              "sqlstmt=query",
@@ -70,7 +75,8 @@ static void print_usage( char * progname)
              "mod_info=x",
              "act_info=x",
              "null_string=x",
-             "pnull_string=x");
+             "pnull_string=x",
+             "max_clob=<NN>");
 }
 
 /*
@@ -80,7 +86,7 @@ static void print_usage( char * progname)
     see Pro*C/C++ Programmers Guide table 15-2 for a list of types
     LONG (8) is MAX_LONG_LEN bytes etc; missed are
     - type 187 (TIMESTAMP), size is explicitly raised from default 16 to 32 below
-    - type 112 (CLOB): size set to MAX_LONG_LEN
+    - type 112 (CLOB): size is configurable with parameter (default: MAX_LONG_LEN)
     lengths are in bytes not chars, so unicode strings are twice as long
 */
 
@@ -139,6 +145,9 @@ int i;
         if ( !strncmp( argv[i], "pnull_string=", 13 ) )
               PNULL_STRING = argv[i]+13;
         else
+        if ( !strncmp( argv[i], "max_clob=", 9 ) )
+              MAX_CLOB_LEN = argv[i]+9;
+        else
         {
             print_usage(argv[0]);
             exit(1);
@@ -186,7 +195,7 @@ static void sqlerror_hard()
     exit(1);
 }
 
-static SQLDA * process_1(char * sqlstmt, int array_size, char * delimiter, char * enclosure )
+static SQLDA * process_1(char * sqlstmt, int array_size, char * delimiter, char * enclosure, int max_clob_len)
 {
 SQLDA * select_dp;
 int     i, j;
@@ -236,8 +245,8 @@ int     size = 10;
           // make 187 (TIMESTAMP) long enough for NLS_TIMESTAMP_FORMAT='YYYY-MM-DD"T"HH24:MI:SS.FF6'
           select_dp->L[i] = 32;
         else if (select_dp->T[i] == 112)
-          // make 112 (CLOB) as long as LONG :)
-          select_dp->L[i] = MAX_LONG_LEN;
+          // make 112 (CLOB) as long as requested
+          select_dp->L[i] = max_clob_len;
         else
           select_dp->L[i] += 5;
         select_dp->V[i] = (char *)malloc( select_dp->L[i] * array_size );
@@ -432,7 +441,7 @@ char * argv[];
     if (MOD_INFO)
       EXEC SQL CALL dbms_application_info.set_module(:MOD_INFO, :ACT_INFO);
 
-    select_dp = process_1( SQLSTMT, atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE );
+    select_dp = process_1( SQLSTMT, atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE, atoi(MAX_CLOB_LEN) );
     process_2( select_dp , atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE, REPLACE_NULL, REPLACE_NL, ENCL_ESC, NULL_STRING, PNULL_STRING );
 
     EXEC SQL COMMIT WORK RELEASE;

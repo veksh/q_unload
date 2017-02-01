@@ -1,7 +1,9 @@
 # Description
 
 Simple program to dump query results to text files, based on some fork of Tom Kyte 
-original [array-flat][kyte-flat] utility. 
+original [array-flat][kyte-flat] utility. Usually runs 10 times faster than dumping
+CSV with hand-crafted query from sql*plus (upto 100 times faster than dumping large
+XML CLOBs).
 
 [kyte-flat]: https://asktom.oracle.com/pls/asktom/f?p=100:11:0::::P11_QUESTION_ID:459020243348
 
@@ -16,6 +18,7 @@ original [array-flat][kyte-flat] utility.
 - optionally enclosing strings and escaping delimitier inside strings
 - reading query from file
 - setting dbms_application_info for long-running queries
+- ability to work with CLOB fields with configurable maximum size (default 65K)
 
 # Usage
 - basic
@@ -38,8 +41,9 @@ original [array-flat][kyte-flat] utility.
     - `null_string`: empty (null) string replacement, default "" (empty)
     - `replace_nl`: newline replacement char, default: keep newlines
     - `share`: if not empty, enable forced cursor sharing for session
-    - `arraysize`: fetch array size, default 10 records
+    - `arraysize`: fetch array size, default 10 records; set to 2-3 with large CLOBs
     - `cli_info`, `mod_info`, `act_info`: client, module and action for `dbms_application_info`
+    - `max_clob`: maximum CLOB size, default 65K
 - obscure options, specific for our environment
     - `pnull_string`: if string field equals hard-coded PRONULL string (currently "<$null4mail_ora$>"),
       replace its contents with this string (usually "?") to facilitate Progress replication
@@ -48,6 +52,3 @@ original [array-flat][kyte-flat] utility.
         export NLS_LANG=AMERICAN_CIS.UTF8
         export NLS_DATE_FORMAT='DD.MM.RR'
         export NLS_TIMESTAMP_FORMAT='YYYY-MM-DD"T"HH24:MI:SS.FF6'
-
-# Missed features and todo
-- bind vars
