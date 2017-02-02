@@ -2,8 +2,8 @@
 
 Simple program to dump query results to text files, based on some fork of Tom Kyte 
 original [array-flat][kyte-flat] utility. Usually runs 10 times faster than dumping
-CSV with hand-crafted query from sql*plus (upto 100 times faster than dumping large
-XML CLOBs).
+CSV with hand-crafted query from sql*plus, upto 100 times faster in extreme cases
+like unloading large XML CLOBs in UTF8.
 
 [kyte-flat]: https://asktom.oracle.com/pls/asktom/f?p=100:11:0::::P11_QUESTION_ID:459020243348
 
