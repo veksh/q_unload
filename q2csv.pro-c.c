@@ -13,7 +13,11 @@
 #define MAX_VNAME_LEN 30
 #define MAX_INAME_LEN 30
 #define MAX_NUM_LEN 45
-#define MAX_LONG_LEN 4000
+/* 268435456 = 1024*1024*256 or 256M is max ok for sybil with arraysize=2 
+   67108864 = 64M is reasonably large, RSS is about 300M for arraysize=2 (1 is slower) 
+   default is 65K for now
+*/
+#define MAX_LONG_LEN 65536
 #define MAX_QUOTES 100
 
 static char * USERID = NULL;
@@ -31,6 +35,7 @@ static char * MOD_INFO = NULL;
 static char * ACT_INFO = "";
 static char * NULL_STRING = "";
 static char * PNULL_STRING = NULL;
+static char * MAX_CLOB_LEN = "MAX_LONG_LEN";
 
 /* call gcc with -DDEBUG or define DEBUG 1 */
 
@@ -54,7 +59,7 @@ static void die( char * msg )
 static void print_usage( char * progname)
 {
     fprintf( stderr,
-             "usage: %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
+             "usage: %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
               progname,
              "userid=xxx/xxx",
              "sqlstmt=query",
@@ -70,7 +75,8 @@ static void print_usage( char * progname)
              "mod_info=x",
              "act_info=x",
              "null_string=x",
-             "pnull_string=x");
+             "pnull_string=x",
+             "max_clob=<NN>");
 }
 
 /*
@@ -78,8 +84,10 @@ static void print_usage( char * progname)
     lengths of returned columns.  It is mapping, for example, the Oracle
     NUMBER type (type code = 2) to be 45 characters long in a string. 
     see Pro*C/C++ Programmers Guide table 15-2 for a list of types
-    LONG (8) is 2000 bytes etc; missed is type 187, size is explicitly 
-    raised from default 16 to 32 below
+    LONG (8) is MAX_LONG_LEN bytes etc; missed are
+    - type 187 (TIMESTAMP), size is explicitly raised from default 16 to 32 below
+    - type 112 (CLOB): size is configurable with parameter (default: MAX_LONG_LEN)
+    lengths are in bytes not chars, so unicode strings are twice as long
 */
 
 static int lengths[] = { -1, 0, MAX_NUM_LEN, 0, 0, 0, 0, 0, MAX_LONG_LEN, 0, 0, 18, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 512, 2000 };
@@ -137,6 +145,9 @@ int i;
         if ( !strncmp( argv[i], "pnull_string=", 13 ) )
               PNULL_STRING = argv[i]+13;
         else
+        if ( !strncmp( argv[i], "max_clob=", 9 ) )
+              MAX_CLOB_LEN = argv[i]+9;
+        else
         {
             print_usage(argv[0]);
             exit(1);
@@ -184,7 +195,7 @@ static void sqlerror_hard()
     exit(1);
 }
 
-static SQLDA * process_1(char * sqlstmt, int array_size, char * delimiter, char * enclosure )
+static SQLDA * process_1(char * sqlstmt, int array_size, char * delimiter, char * enclosure, int max_clob_len)
 {
 SQLDA * select_dp;
 int     i, j;
@@ -233,6 +244,9 @@ int     size = 10;
         else if (select_dp->T[i] == 187) 
           // make 187 (TIMESTAMP) long enough for NLS_TIMESTAMP_FORMAT='YYYY-MM-DD"T"HH24:MI:SS.FF6'
           select_dp->L[i] = 32;
+        else if (select_dp->T[i] == 112)
+          // make 112 (CLOB) as long as requested
+          select_dp->L[i] = max_clob_len;
         else
           select_dp->L[i] += 5;
         select_dp->V[i] = (char *)malloc( select_dp->L[i] * array_size );
@@ -264,6 +278,7 @@ char   * enc;
 short  * ftypes;
 char   * escaped, * res_str;
 short  skip_enc;
+int    is_string = 1;
 
     // need to set type to 5 ("string") for autoformat; save actual types to enclose only strings
     ftypes = malloc(sizeof(short)*select_dp->F);
@@ -271,6 +286,9 @@ short  skip_enc;
     {
         ftypes[i] = select_dp->T[i];
         select_dp->T[i] = 5;
+        #ifdef DEBUG
+        printf("\n# DEBUG: orig type of field %d is %d\n", i, ftypes[i]);
+        #endif
     }
 
     for ( last_fetch_count = 0;
@@ -291,6 +309,11 @@ short  skip_enc;
                 printf("\n# DEBUG: orig field_str: %s\n", field_str);
                 #endif
 
+                if (ftypes[i] == 1 || ftypes[i] == 112) 
+                  is_string = 1;
+                else
+                  is_string = 0;
+
                 // relace newlines (in all fields, really need to check only strings)
                 if (replace_nl) {
                   char *pch = strstr(field_str, "\n");
@@ -304,7 +327,7 @@ short  skip_enc;
                 }
 
                 // replace special progress nulls in strings, mark as done
-                if (replace_pronull && ftypes[i] == 1) {
+                if (replace_pronull && is_string) {
                    if (! strcmp(field_str, PRONULL)) {
                      field_str = replace_pronull;   
                      skip_enc = 1;
@@ -315,7 +338,7 @@ short  skip_enc;
                 }
                  
                 // change quotas to escaped in strings
-                if (encl_esc && ftypes[i] == 1) {
+                if (encl_esc && is_string) {
                     // TODO: artifical limit of quotes in string, too lazy to count 
                     escaped = malloc(strlen(field_str) + MAX_QUOTES);
                     size_t p, d = 0;
@@ -347,7 +370,7 @@ short  skip_enc;
                 // ind_value = -1 means null, 0 not null, positive: truncated
                 if (ind_value == -1) {
                   res_str = replace_null;
-                  if (ftypes[i] == 1 && null_string ) {
+                  if (is_string && null_string ) {
                     res_str = null_string;
                   }
                   #ifdef DEBUG
@@ -357,9 +380,9 @@ short  skip_enc;
                 }
 
                 enc = "";
-                // enclose strings, skip sepcial cases
+                // enclose strings, skip special cases
                 if (!ind_value) {
-                  if (ftypes[i] == 1 && !skip_enc) {
+                  if (is_string && !skip_enc) {
                     enc = enclosure;
                   }
                 }
@@ -418,7 +441,7 @@ char * argv[];
     if (MOD_INFO)
       EXEC SQL CALL dbms_application_info.set_module(:MOD_INFO, :ACT_INFO);
 
-    select_dp = process_1( SQLSTMT, atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE );
+    select_dp = process_1( SQLSTMT, atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE, atoi(MAX_CLOB_LEN) );
     process_2( select_dp , atoi(ARRAY_SIZE), DELIMITER, ENCLOSURE, REPLACE_NULL, REPLACE_NL, ENCL_ESC, NULL_STRING, PNULL_STRING );
 
     EXEC SQL COMMIT WORK RELEASE;
