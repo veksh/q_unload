@@ -18,6 +18,8 @@
    default is 65K for now
 */
 #define MAX_LONG_LEN 65536
+/* not sure how to make string const from int const -- lets have both for a moment :) */
+#define MAX_LONG_LEN_S "65536"
 #define MAX_QUOTES 100
 
 static char * USERID = NULL;
@@ -35,7 +37,7 @@ static char * MOD_INFO = NULL;
 static char * ACT_INFO = "";
 static char * NULL_STRING = "";
 static char * PNULL_STRING = NULL;
-static char * MAX_CLOB_LEN = "MAX_LONG_LEN";
+static char * MAX_CLOB_LEN = MAX_LONG_LEN_S;
 
 /* call gcc with -DDEBUG or define DEBUG 1 */
 
