@@ -52,3 +52,10 @@ like unloading large XML CLOBs in UTF8.
         export NLS_LANG=AMERICAN_CIS.UTF8
         export NLS_DATE_FORMAT='DD.MM.RR'
         export NLS_TIMESTAMP_FORMAT='YYYY-MM-DD"T"HH24:MI:SS.FF6'
+
+- to prevent an application from hanging on SIGABRT (e.g. glibc "double free") errors: disable
+  [OCI signal handler][oci-faults] in `$TNS_ADMIN/sqlnet.ora`
+
+        DIAG_SIGHANDLER_ENABLED=FALSE
+
+[oci-faults]: https://docs.oracle.com/cd/E18283_01/appdev.112/e10646/oci10new.htm#CHDCIAHJ
