@@ -44,6 +44,7 @@ like unloading large XML CLOBs in UTF8.
     - `arraysize`: fetch array size, default 10 records; set to 2-3 with large CLOBs
     - `cli_info`, `mod_info`, `act_info`: client, module and action for `dbms_application_info`
     - `max_clob`: maximum CLOB size, default 65K
+    - `headers`: if not empty, add field names as CSV header
 - obscure options, specific for our environment
     - `pnull_string`: if string field equals hard-coded PRONULL string (currently "<$null4mail_ora$>"),
       replace its contents with this string (usually "?") to facilitate Progress replication

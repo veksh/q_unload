@@ -20,7 +20,7 @@
 #define MAX_LONG_LEN 65536
 /* not sure how to make string const from int const -- lets have both for a moment :) */
 #define MAX_LONG_LEN_S "65536"
-#define MAX_QUOTES 100
+#define MAX_QUOTES 700
 
 static char * USERID = NULL;
 static char * SQLSTMT = NULL;
@@ -38,6 +38,7 @@ static char * ACT_INFO = "";
 static char * NULL_STRING = "";
 static char * PNULL_STRING = NULL;
 static char * MAX_CLOB_LEN = MAX_LONG_LEN_S;
+static char * PRINT_HEADERS = NULL;
 
 /* call gcc with -DDEBUG or define DEBUG 1 */
 
@@ -61,7 +62,7 @@ static void die( char * msg )
 static void print_usage( char * progname)
 {
     fprintf( stderr,
-             "usage: %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
+             "usage: %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
               progname,
              "userid=xxx/xxx",
              "sqlstmt=query",
@@ -78,7 +79,8 @@ static void print_usage( char * progname)
              "act_info=x",
              "null_string=x",
              "pnull_string=x",
-             "max_clob=<NN>");
+             "max_clob=<NN>",
+             "headers=x");
 }
 
 /*
@@ -149,6 +151,9 @@ int i;
         else
         if ( !strncmp( argv[i], "max_clob=", 9 ) )
               MAX_CLOB_LEN = argv[i]+9;
+        else
+        if ( !strncmp( argv[i], "headers=", 8 ) )
+              PRINT_HEADERS = argv[i]+8;
         else
         {
             print_usage(argv[0]);
@@ -231,6 +236,7 @@ int     size = 10;
     for (i = 0; i < select_dp->N; i++)
         select_dp->I[i] = (short *) malloc(sizeof(short) * array_size );
 
+    fprintf( stderr, "Fields are ");
     for (i = 0; i < select_dp->F; i++)
     {
         sqlnul (&(select_dp->T[i]),
@@ -261,9 +267,14 @@ int     size = 10;
         #else
         fprintf (stderr, "%s%.*s", i ? "," : "", j+1, select_dp->S[i]);
         #endif
+        if (PRINT_HEADERS) {
+          printf ("%s%.*s", i ? delimiter : "", j+1, select_dp->S[i]);
+        }
     }
     fprintf( stderr, "\n" );
-
+    if (PRINT_HEADERS) {
+      printf("\n");
+    }
     EXEC SQL OPEN C;
     return select_dp;
 }
